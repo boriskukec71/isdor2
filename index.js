@@ -5,8 +5,13 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const fileService = require('./services/fileService');
 const endUserService = require('./services/endUserService'); // TODO 
+const appUserService = require('./services/appUserService'); 
+const appUserAccessLogService = require('./services/appUserAccessLogService'); 
 const ObjectId = require('mongoose').Types.ObjectId;
-const logger = require('./log4js-config').getLogger();
+const authenticate = require('./services/authenticateService')
+const authorize = require('./services/authorizationService')
+const log4js = require('./log4js-config');
+const logger = log4js.getLogger('index');
 
 const UPLOAD_PATH = './uploads'
 
@@ -24,6 +29,11 @@ const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(log4js.connectLogger(logger, {
+    level: 'info', format: (req, res, format) => format(`${req.correlationId()}|${(req.user) ? req.user.username : ''}|${(req.user) ? req.user.role : ''}|:remote-addr|:method|:url|${JSON.stringify(req.body)}|:status`)
+}));
+
+
 app.use(correlator({ header: "x-isidor-correlation" }));
 
 function formatPage(rows) {
@@ -34,11 +44,16 @@ function isValidId(id) {
     return ObjectId.isValid(id);
 }
 
+// REST paths //
 app.get('/', (req, res) => {
     res.json({
         message: 'MEVN Stack!'
     });
 });
+
+app.post('/login', authenticate.logIn);
+app.all('*', authenticate.authenticateToken);
+app.all('*', authorize.auathorizeUser);
 
 app.get('/folders', (req, res) => {
     fileService.getAllFolders({}, function (err, docs) {
@@ -96,7 +111,6 @@ app.get('/end-users', async (req, res) => {
 });
 
 app.get('/end-users/:id', (req, res) => {
-    console.log(req.params);
     endUserService.getOne(req.params.id, function (err, doc) {
         if (!err) {
             res.json(doc);
@@ -108,7 +122,6 @@ app.get('/end-users/:id', (req, res) => {
 });
 
 app.post('/end-users', (req, res) => {
-    logger.debug("POST /end-users:", req.body);
     endUserService.create(req.body, function (err, docs) {
         if (!err) {
             res.json(docs);
@@ -120,7 +133,6 @@ app.post('/end-users', (req, res) => {
 });
 
 app.put('/end-users/:id', (req, res) => {
-    logger.debug(req.correlationId() + " PUT /end-users:", req.body);
     endUserService.update(req.params.id, req.body, function (err, docs) {
         if (!err) {
             res.json(docs);
@@ -134,12 +146,10 @@ app.put('/end-users/:id', (req, res) => {
 app.get('/files/:id', async (req, res) => {
     try {
         var query = req.query;
-        console.log(req.params);
         query.parentFolder = ObjectId(req.params.id);
         let docs = await fileService.getAll(query, false);
         res.json(docs);
     } catch (err) {
-        console.log(err);
         res.sendStatus(500);
     };
 });
@@ -153,7 +163,6 @@ app.post('/end-users/:id/folder', async (req, res) => {
         let folder = await endUserService.createEndUserFolder(req.params.id);
         res.send(folder);
     } catch (err) {
-        console.log(err);
         res.sendStatus(500);
     }
 });
@@ -163,13 +172,68 @@ app.post('/folders/:id', upload.single('image'), async (req, res) => {
         await fileService.saveFile(req.params.id, req.file, req.body);
         res.sendStatus(200);
     } catch (err) {
-        console.log(err);
         res.sendStatus(500);
     };
+});
+
+app.get('/app-user-access-log', async (req, res) => {
+    try {
+        let docs = await appUserAccessLogService.getAll(req.query);
+        res.json(docs);
+    } catch (err) {
+        res.sendStatus(500);
+        /*
+        console.log(err);
+        next(err); */
+    };
+});
+
+// App user
+app.get('/app-users', async (req, res) => {
+    try {
+        let docs = await appUserService.getAll(req.query);
+        res.json(docs);
+    } catch (err) {
+        console.log(err);
+        next(err);
+    };
+});
+
+app.get('/app-users/:id', (req, res) => {
+    appUserService.getOne(req.params.id, function (err, doc) {
+        if (!err) {
+            res.json(doc);
+        } else {
+            console.log(err);
+            next(err);
+        }
+    });
+});
+
+app.post('/app-users', (req, res) => {
+    appUserService.create(req.body, function (err, docs) {
+        if (!err) {
+            res.json(docs);
+        } else {
+            console.log(err);
+            next(err);
+        }
+    })
+});
+
+app.put('/app-users/:id', (req, res) => {
+    appUserService.update(req.params.id, req.body, function (err, docs) {
+        if (!err) {
+            res.json(docs);
+        } else {
+            console.log(err);
+            res.send(500);
+        }
+    })
 });
 
 
 const port = 4000;
 app.listen(port, () => {
-    console.log(`listening on ${port}`);
+    console.log(`isidor2 server listening on ${port}`);
 });

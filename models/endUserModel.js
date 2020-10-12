@@ -1,7 +1,5 @@
-//Require Mongoose
 var mongoose = require('mongoose');
 
-//Define a schema
 var Schema = mongoose.Schema;
 
 var EndUserSchema = new Schema({
@@ -26,10 +24,5 @@ var EndUserSchema = new Schema({
   modifiedAt: Date,
   modifiedby: String
 });
-
-/*
-EndUserSchema.index({ idNumber: 'text', name: 'text', city: 'text', streetWithHomeNumber: 'text', municipality: 'text' });
-db.endusers.createIndex({ idNumber: 'text', name: 'text', city: 'text', streetWithHomeNumber: 'text', municipality: 'text' }, {name: 'allFields'});
-*/
 
 module.exports = mongoose.model('EndUsers', EndUserSchema);
