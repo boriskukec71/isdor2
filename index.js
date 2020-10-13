@@ -205,7 +205,7 @@ app.get('/app-users/:id', (req, res) => {
             res.json(doc);
         } else {
             console.log(err);
-            next(err);
+            res.send(500);;
         }
     });
 });
@@ -216,14 +216,18 @@ app.post('/app-users', (req, res) => {
             res.json(docs);
         } else {
             console.log(err);
-            next(err);
+            res.send(500);
         }
     })
 });
 
 app.put('/app-users/:id', (req, res) => {
+console.log(req.body);
+delete req.body.password2;
     appUserService.update(req.params.id, req.body, function (err, docs) {
+console.log(err);
         if (!err) {
+            console.log(docs);
             res.json(docs);
         } else {
             console.log(err);
