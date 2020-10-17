@@ -1,4 +1,4 @@
-const adminPaths = [{path: 'app-user-access-log', methods: ['GET']}, {path: 'app-users', methods :['PUT', 'POST', 'DELETE']}];
+const adminPaths = [{path: 'app-user-access-logs', methods: ['GET']}, {path: 'app-users', methods :['PUT', 'POST', 'DELETE']}];
 
 function auathorizeUser(req, res, next) {
     // Gather the jwt access token from the request header

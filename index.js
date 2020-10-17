@@ -176,11 +176,12 @@ app.post('/folders/:id', upload.single('image'), async (req, res) => {
     };
 });
 
-app.get('/app-user-access-log', async (req, res) => {
+app.get('/app-user-access-logs', async (req, res) => {
     try {
         let docs = await appUserAccessLogService.getAll(req.query);
         res.json(docs);
     } catch (err) {
+        console.log(err);
         res.sendStatus(500);
         /*
         console.log(err);

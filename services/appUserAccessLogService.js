@@ -8,7 +8,11 @@ const pageService = require('./pageService');
 async function getAll(query) {
     let pageInfo = pageService.pageInfo(query)
     pageService.searchAny(query);
-    pageInfo.data = await AppUserAccessLogs.find(query).skip(pageService.skip(pageInfo)).limit(pageInfo.size);
+    let sort = pageService.sortBy(query);
+    if (Object.keys(sort).length === 0) {
+        sort['time'] = -1;
+    }
+    pageInfo.data = await AppUserAccessLogs.find(query).sort(sort).skip(pageService.skip(pageInfo)).limit(pageInfo.size);
     pageInfo.totalElements = await AppUserAccessLogs.countDocuments(query);
     return pageInfo;
 }

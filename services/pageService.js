@@ -1,4 +1,5 @@
 const defultPageSize = 10;
+const defaultSortDirection = -1; // descending
 
 function firstPage(pageInfo) {
     pageInfo.page = 1;
@@ -66,6 +67,20 @@ function searchAny(query) {
     }
 }
 
+function sortBy(query) {
+    var sort = {}
+    if (!query.sortBy) {
+        return sort;
+    }
+    var sortBy = query.sortBy.split(',');
+    var sortDirection = defaultSortDirection;
+    if (sortBy.length > 1) {
+        sortDirection = parseInt(sortBy[0])
+    }    
+    sort[sortBy[0]] = sortDirection;
+    return sort;
+}
+
 exports.skip = skip;
 exports.pageInfo = pageInfo;
 exports.firstPage = firstPage;
@@ -73,3 +88,4 @@ exports.lastPage = lastPage;
 exports.nextPage = nextPage;
 exports.prevPage = prevPage;
 exports.searchAny = searchAny;
+exports.sortBy = sortBy;

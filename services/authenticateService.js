@@ -46,8 +46,10 @@ function validate(username, password, res) {
             return;
         }
         const token = genToken(appUser);
+        const expiresAt = getExpiresAt(config.tokenExpiresIn);
         res.json({
             token: token,
+            expiresAt: expiresAt,
             user: {
                 username: appUser.username,
                 role: appUser.role
@@ -64,9 +66,9 @@ function genToken(user) {
 }
 
 /// delete
-function expiresIn(inSeconds) {
+function getExpiresAt(expiresIn) {
     var date = new Date();
-    return new Date(date.getTime() + inSeconds * 1000);
+    return date.getTime() + expiresIn * 1000;
 }
 
 module.exports = {
