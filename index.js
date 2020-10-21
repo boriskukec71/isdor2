@@ -36,10 +36,6 @@ app.use(log4js.connectLogger(logger, {
 
 app.use(correlator({ header: "x-isidor-correlation" }));
 
-function formatPage(rows) {
-
-}
-
 function isValidId(id) {
     return ObjectId.isValid(id);
 }
@@ -143,11 +139,12 @@ app.put('/end-users/:id', (req, res) => {
     })
 });
 
-app.get('/files/:id', async (req, res) => {
+app.get('/folders/:id/files', async (req, res) => {
+    console.log(req.route.path);
     try {
         var query = req.query;
-        query.parentFolder = ObjectId(req.params.id);
-        let docs = await fileService.getAll(query, false);
+        ///query.parentFolder = ObjectId(req.params.id);
+        let docs = await fileService.getAllFilesByFolder(req.params.id, query, false);
         res.json(docs);
     } catch (err) {
         res.sendStatus(500);
@@ -223,10 +220,9 @@ app.post('/app-users', (req, res) => {
 });
 
 app.put('/app-users/:id', (req, res) => {
-console.log(req.body);
+
 delete req.body.password2;
     appUserService.update(req.params.id, req.body, function (err, docs) {
-console.log(err);
         if (!err) {
             console.log(docs);
             res.json(docs);

@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 var AppUsers = require('../models/appUserModel');
 var config = require('../isidorConfig.js');
 const logger = require('../log4js-config').getLogger('authenticateService');
+const bcrypt = require('bcrypt');
 
 function authenticateToken(req, res, next) {
     // Gather the jwt access token from the request header
@@ -40,21 +41,27 @@ function logIn(req, res) {
 }
 
 function validate(username, password, res) {
-    AppUsers.findOne({ username: username, password: password }, function (err, appUser) {
+    AppUsers.findOne({ username: username }, function (err, appUser) {
         if (!appUser) {
             res.status(401).end();
             return;
         }
-        const token = genToken(appUser);
-        const expiresAt = getExpiresAt(config.tokenExpiresIn);
-        res.json({
-            token: token,
-            expiresAt: expiresAt,
-            user: {
-                username: appUser.username,
-                role: appUser.role
+        bcrypt.compare(password, appUser.password).then((isSame) => {
+            if (!isSame) {
+                res.status(401).end();
+                return;
             }
-        });
+            const token = genToken(appUser);
+            const expiresAt = getExpiresAt(config.tokenExpiresIn);
+            res.json({
+                token: token,
+                expiresAt: expiresAt,
+                user: {
+                    username: appUser.username,
+                    role: appUser.role
+                }
+            });
+        }).catch(() => {res.status(401).end();})
     })
 }
 

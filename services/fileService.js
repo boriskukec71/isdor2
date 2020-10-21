@@ -27,6 +27,29 @@ function getAllFolders(query, callback) {
     });
 }
 
+async function getAllFilesByFolder(id, query) {
+    if (!query) {
+        query = {}
+    }
+    if (ObjectId.isValid(id)) {
+        query.parentFolder = id;
+    } else {
+        let parentFolder = await Files.findOne({name: id});
+        query.parentFolder = parentFolder._id;
+    }
+    let pageInfo = pageService.pageInfo(query)
+    console.log(query);
+    pageService.searchAny(query);
+    pageInfo.data = await Files.find(query).skip(pageService.skip(pageInfo)).limit(pageInfo.size);
+    pageInfo.totalElements = await Files.countDocuments(query);
+    pageInfo.data.forEach(element => {
+        delete element.presentation;
+        delete element.content;
+    });
+    console.log(pageInfo);
+    return pageInfo;
+}
+
 async function getAll(query) {
     let pageInfo = pageService.pageInfo(query)
     console.log(pageInfo);
@@ -116,3 +139,4 @@ exports.getOne = getOne;
 exports.getOneByName = getOneByName;
 exports.saveFile = saveFile;
 exports.getBinary = getBinary;
+exports.getAllFilesByFolder = getAllFilesByFolder;

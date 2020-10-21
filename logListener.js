@@ -1,13 +1,14 @@
 require('./connection/connection');
 var AppUserAccessLogs = require('./models/appUserAccessLogModel');
 const Tail = require('tail').Tail;
+const config = require('./isidorConfig');
 
 
 const dataStartString = 'index -';
 const dataFieldSeparattor = '|'
 const system = 'system';
  
-tail = new Tail('./logs/isidor2.log');
+tail = new Tail('./logs/isidor2.log', {useWatchFile: true, flushAtEOF: true});
  
 tail.on('line', function(data) {
   processLogLine(data);
@@ -29,13 +30,13 @@ function processLogLine(line) {
     var logTime = getTime(line);
     var urlMainParts = dataFields[5].split('?');
 
-    var urlSlug = getUrlSlug(urlMainParts[0]);
+    var urlTranslated = getUrlTranslated(urlMainParts[0]);
     var requestParams = getRequestParams(urlMainParts[1])
 
     var responseStatus = dataFields[7];
 
     AppUserAccessLogs.create({
-        "urlSlug": urlSlug,
+        "urlSlug": urlTranslated,
         "username": dataFields[1],
         "role": dataFields[2],
         "time": logTime,
@@ -61,9 +62,13 @@ function getTime(timeString) {
     return time;
 }
 
-function getUrlSlug(url) {
-    var urlSlug = url.replace('/', '_');
-    return urlSlug;
+function getUrlTranslated(url) {
+    var urlTranslated = url;
+    for (const key of Object.keys(config.accessLogger.translations.pathSegments)) {
+        console.log(key +" "+config.accessLogger.translations.pathSegments[key]);
+        urlTranslated = urlTranslated.replace(key, config.accessLogger.translations.pathSegments[key])
+    }
+    return urlTranslated;
 }
 
 function getRequestParams(queryParams) {

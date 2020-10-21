@@ -2,17 +2,32 @@
 const AppUsers = require('../models/appUserModel');
 const pageService = require('./pageService');
 const ObjectId = require('mongoose').Types.ObjectId;
+const bcrypt = require('bcrypt')
 
 
-function create(appUser, callback) {
-    AppUsers.create(appUser, function (err, docs) {
-        callback(err, docs);
+async function hashPassword(password) {
+    const salt = await bcrypt.genSalt(10)
+    const hash = await bcrypt.hash(password, salt)
+    return hash;
+}
+
+async function create(appUser, callback) {
+    if (appUser.password) {
+        appUser.password = await hashPassword(appUser.password);
+    }
+    AppUsers.create(appUser, function (err, doc) {
+        delete doc.password;
+        callback(err, doc);
     })
 }
 
-function update(id, appUser, callback) {
-    AppUsers.findByIdAndUpdate(id, appUser, { new: true }, function (err, docs) {
-        callback(err, docs);
+async function update(id, appUser, callback) {
+    if (appUser.password) {
+        appUser.password = await hashPassword(appUser.password);
+    }
+    AppUsers.findByIdAndUpdate(id, appUser, { new: true }, function (err, doc) {
+        delete doc.password;
+        callback(err, doc);
     })
 }
 
@@ -30,7 +45,7 @@ function getOne(id, callback) {
             callback(err, doc);
         });
     } else {
-        AppUsers.findOne({ "username": id }, function (err, doc) {
+        AppUsers.findOne({ username: id }, function (err, doc) {
             callback(err, doc);
         });
     }
