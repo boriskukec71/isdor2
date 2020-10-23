@@ -18,8 +18,7 @@ const config = {
                 "app-users": "Korisnici"
             }
         }
-    }
-
+    },
 }
 
 module.exports = config;
