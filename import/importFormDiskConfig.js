@@ -12,11 +12,12 @@ module.exports = {
             readyForImport: "readyForImport",
             importDone : "importDone",
             importError: "error",
-            importSkipped : "skipped"
+            importSkipped : "skipped",
+            temp: "temp"
         },
-        hasLeadingPrefix : true,
-        sortBy: 'filename',
-        oridnalInPrefix: false,
-        debugOnly: false
+        sortBy: "filename",
+        ordinalInPrefix: false,
+        debugOnly: false,
+        pngerExecutable: "java -jar -Dlog4j.configurationFile=/home/boris/git2/pnger/src/main/resources/log4j2.xml /home/boris/git2/pnger/target/pnger-1.0-SNAPSHOT.jar"
     }
 };

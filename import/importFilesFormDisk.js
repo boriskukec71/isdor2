@@ -25,6 +25,20 @@ var defaultRequestConfig = {
     }
 };
 
+function filenameToPng(filename) {
+    var filenameParts = filename.split(".");
+    if (filenameParts.length == 0) {
+        return;
+    }
+    filenameParts[filenameParts.length - 1] = "png";
+    var pngFilename = filenameParts[0];
+    for (var i = 1; i < filenameParts.length; i++) {
+        var part = filenameParts[i];
+        pngFilename = pngFilename + "." + part;
+    }
+    return pngFilename;
+}
+
 const importFolder = async (root1, folders, skipUnexistingFolders) => {
 
     var debugOnly = config.import.debugOnly;
@@ -106,15 +120,24 @@ const importFolder = async (root1, folders, skipUnexistingFolders) => {
 
         for (j = 0; j < filesExtended.length; j++) {
             var fileExtended = filesExtended[j];
+            var fullPath = path.resolve(fullFolderPath + '/' + fileExtended.filename);
+            if (!fileExtended.stat.isDirectory() && fileExtended.filename.toLowerCase().endsWith('.tif')) {
+                logger.info('Converting ' + fileExtended.filename + ' to png!');
+                execSync(config.import.pngerExecutable + ' -i ' + fullPath + ' -o ' + fullFolderPath);
+                fileExtended.originalFilename = fileExtended.filename;
+                var pngFilename = filenameToPng(fileExtended.filename);
+                fileExtended.filename = pngFilename;
+                logger.info('Importing as ' + fileExtended.filename);
+                fullPath = path.resolve(fullFolderPath + '/' + fileExtended.filename);
+            }
             if (!fileExtended.stat.isDirectory() && fileExtended.filename.endsWith('.png')) {
-                var fullPath = path.resolve(fullFolderPath + '/' + fileExtended.filename);
                 pngCounter++;
                 logger.info(folder + ': ' + fullPath + ' ' + pngCounter);
                 let formData = new FormData();
                 formData.append('content', 'content');
                 var realFilename = fileExtended.filename;
                 var ordinalNumber = j +1;
-                if (config.import.oridnalInPrefix) {
+                if (config.import.ordinalInPrefix) {
                     var filenameParts = file.split('_');
                     if (filenameParts.length > 1) {
                         ordinalNumber = parseInt(filenameParts[0]);
@@ -134,8 +157,11 @@ const importFolder = async (root1, folders, skipUnexistingFolders) => {
                 if (!debugOnly) {
                     const newFileResponse = await axios.post(url + '/folders/' + folder, formData, request_config)
                     .then((response) => {
-                        console.log(fileExtended.filename);
+                        ///console.log(fileExtended.filename);
                         fs.moveSync(fullFolderPath + '/' + fileExtended.filename, doneSubFolder + '/' + folder + '/' + fileExtended.filename);
+                        if (fileExtended.originalFilename) {
+                            fs.moveSync(fullFolderPath + '/' + fileExtended.originalFilename, doneSubFolder + '/' + folder + '/' + fileExtended.originalFilename);
+                        }
                     })
                 } else {
                     logger.debug('Imported: ' + fullPath + ' as ' + ordinalNumber + ' file in folder ' + folder);
