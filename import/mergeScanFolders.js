@@ -130,6 +130,13 @@ function mergeFolder(folder, to) {
         }
         return;
     }
+    if (files.length === 0 && subFolders.length !== 0 && archiveIdentifiers.length === 0) {
+        // TODO idi dalje po folderima 
+        for(const subFolder of subFolders) {
+            mergeFolder(folder + delimiter + subFolder, to);
+        }
+        return;
+    }
     if (files.length !== 0 && subFolders.length === 0 && archiveIdentifiers.length !== 0) {
         logger.info(folder);
         for (const archiveIdentifier of archiveIdentifiers) {
