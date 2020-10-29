@@ -19,7 +19,7 @@ function update(id, endUser, callback) {
 
 async function getAll(query) {
     let pageInfo = pageService.pageInfo(query)
-    pageService.searchAny(query);
+    pageService.searchAny(query, ['name', 'idNumber', 'street', 'city']);
     pageInfo.data = await EndUsers.find(query).skip(pageService.skip(pageInfo)).limit(pageInfo.size);
     pageInfo.totalElements = await EndUsers.countDocuments(query);
     return pageInfo;

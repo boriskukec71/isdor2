@@ -140,7 +140,6 @@ app.put('/end-users/:id', (req, res) => {
 });
 
 app.get('/folders/:id/files', async (req, res) => {
-    console.log(req.route.path);
     try {
         var query = req.query;
         ///query.parentFolder = ObjectId(req.params.id);
@@ -154,6 +153,16 @@ app.get('/folders/:id/files', async (req, res) => {
 app.get('/files/:id/:what', async (req, res) => {
     fileService.getBinary(req.params.id, req.params.what, res);
 });
+
+app.put('/files/:id', (req, res) => {
+    fileService.updateFileData(req.params.id, req.body, function (err, docs) {
+        if (!err) {
+            res.json(docs);
+        } else {
+            res.send(500);
+        }
+    })
+})
 
 app.post('/end-users/:id/folder', async (req, res) => {
     try {
@@ -224,7 +233,6 @@ app.put('/app-users/:id', (req, res) => {
 delete req.body.password2;
     appUserService.update(req.params.id, req.body, function (err, docs) {
         if (!err) {
-            console.log(docs);
             res.json(docs);
         } else {
             console.log(err);

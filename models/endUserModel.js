@@ -23,6 +23,7 @@ var EndUserSchema = new Schema({
   createdBy: String,
   modifiedAt: Date,
   modifiedby: String
-});
+},
+{collation: { locale: 'hr', strength: 2 }});
 
 module.exports = mongoose.model('EndUsers', EndUserSchema);

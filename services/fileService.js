@@ -38,21 +38,19 @@ async function getAllFilesByFolder(id, query) {
         query.parentFolder = parentFolder._id;
     }
     let pageInfo = pageService.pageInfo(query)
-    console.log(query);
+    let sort = pageService.sortBy(query);
     pageService.searchAny(query);
-    pageInfo.data = await Files.find(query).skip(pageService.skip(pageInfo)).limit(pageInfo.size);
+    pageInfo.data = await Files.find(query).sort(sort).skip(pageService.skip(pageInfo)).limit(pageInfo.size);
     pageInfo.totalElements = await Files.countDocuments(query);
     pageInfo.data.forEach(element => {
         delete element.presentation;
         delete element.content;
     });
-    console.log(pageInfo);
     return pageInfo;
 }
 
 async function getAll(query) {
     let pageInfo = pageService.pageInfo(query)
-    console.log(pageInfo);
     pageService.searchAny(query);
     pageInfo.data = await Files.find(query).skip(pageService.skip(pageInfo)).limit(pageInfo.size);
     pageInfo.totalElements = await Files.countDocuments(query);
@@ -60,16 +58,13 @@ async function getAll(query) {
         delete element.presentation;
         delete element.content;
     });
-    console.log(pageInfo);
     return pageInfo;
 }
 
 async function getBinary(id, what, res) {
     try {
         var file = await Files.findById(id);
-        console.log(file);
         if (what === 'presentation' && file.hasPresentationImage) {
-            console.log(file.presentation.contentType);
             res.contentType(file.presentation.contentType);
             res.send(file.presentation.data)
         } else {
@@ -78,7 +73,6 @@ async function getBinary(id, what, res) {
             res.send(file.content.data)
         }
     } catch (err) {
-        console.log(err);
         res.send(500);
     };
 }
@@ -94,6 +88,12 @@ function getOneByName(name, callback) {
      Files.findOne({name: name}, function (err, doc) {
         callback(err, doc);
     });
+}
+
+function updateFileData(id, data, callback) {
+    Files.findByIdAndUpdate(id, data, { new: true }, function (err, docs) {
+        callback(err, docs);
+    })
 }
 
 async function saveFile(parentFolder, inputFile, data) {
@@ -140,3 +140,4 @@ exports.getOneByName = getOneByName;
 exports.saveFile = saveFile;
 exports.getBinary = getBinary;
 exports.getAllFilesByFolder = getAllFilesByFolder;
+exports.updateFileData = updateFileData;

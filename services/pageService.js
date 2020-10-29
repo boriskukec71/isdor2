@@ -60,10 +60,17 @@ function skip(pageInfo) {
     return (pageInfo.page - 1) * pageInfo.size;
 }
 
-function searchAny(query) {
+function searchAny(query, inStringProperties) {
     if (query.search) {
         query["$text"] = {"$search": query.search};
         delete query.search;
+    }
+    if (inStringProperties && inStringProperties.length > 0) {
+        for(const inStringProperty of inStringProperties) {
+            if (query[inStringProperty]) {
+                query[inStringProperty]= {"$regex" : query[inStringProperty].toUpperCase()};
+            }
+        }
     }
 }
 
@@ -75,8 +82,9 @@ function sortBy(query) {
     var sortBy = query.sortBy.split(',');
     var sortDirection = defaultSortDirection;
     if (sortBy.length > 1) {
-        sortDirection = parseInt(sortBy[0])
+        sortDirection = parseInt(sortBy[1])
     }    
+    delete query.sortBy;
     sort[sortBy[0]] = sortDirection;
     return sort;
 }
