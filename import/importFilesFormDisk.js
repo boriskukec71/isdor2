@@ -112,7 +112,7 @@ const importFolder = async (root1, folders, skipUnexistingFolders) => {
         for (j = 0; j < files.length; j++) {
             var file = files[j];
             var stat = fs.statSync(fullFolderPath + '/' + file);
-            filesExtended.push({stat: stat, date: stat.ctime, filename: file});
+            filesExtended.push({stat: stat, date: stat.mtime, filename: file});
         }
 
         let sortKey = config.import.sortBy;
