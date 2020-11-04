@@ -25,6 +25,8 @@ var defaultRequestConfig = {
     }
 };
 
+var delimiter = '\\';
+
 function filenameToPng(filename) {
     var filenameParts = filename.split(".");
     if (filenameParts.length == 0) {
@@ -42,20 +44,20 @@ function filenameToPng(filename) {
 const importFolder = async (root1, folders, skipUnexistingFolders) => {
 
     var debugOnly = config.import.debugOnly;
-    var errorSubFolder =  config.import.importFolder + '/' + config.import.subFolders.importError;
-    var skippedSubFolder =  config.import.importFolder + '/' + config.import.subFolders.importSkipped;
-    var doneSubFolder =  config.import.importFolder + '/' + config.import.subFolders.importDone;
+    var errorSubFolder =  config.import.importFolder + delimiter + config.import.subFolders.importError;
+    var skippedSubFolder =  config.import.importFolder + delimiter + config.import.subFolders.importSkipped;
+    var doneSubFolder =  config.import.importFolder + delimiter + config.import.subFolders.importDone;
     var pngCounter = 0;
     for (i = 0; i < folders.length; i++) {
         var folder = folders[i];
-        var fullFolderPath = root1 + '/' + folder;
+        var fullFolderPath = root1 + delimiter + folder;
         if (config.import.validateFolderNameAsNumber ) {
             const regex = /^[1-9]\d+$/g;
             const found = folder.match(regex);               
             if (found === null || found.lenght === 0) {
                 logger.error(folder + ' is not a number!');
                 if (!debugOnly) {
-                    fs.moveSync(fullFolderPath, errorSubFolder + '/' + folder) 
+                    fs.moveSync(fullFolderPath, errorSubFolder + delimiter + folder) 
                 }
                 continue;
             }
@@ -74,7 +76,7 @@ const importFolder = async (root1, folders, skipUnexistingFolders) => {
             if (skipUnexistingFolders) {
                 logger.info('Moving to skipped!');
                 if (!debugOnly) {
-                    fs.moveSync(fullFolderPath, skippedSubFolder + '/' + folder) 
+                    fs.moveSync(fullFolderPath, skippedSubFolder + delimiter + folder) 
                 }  // TODO
                 continue;
             }
@@ -104,14 +106,14 @@ const importFolder = async (root1, folders, skipUnexistingFolders) => {
 
         endUser.folder = folderId;
         if (!debugOnly) {
-            fs.ensureDirSync(doneSubFolder + '/' + folder);
+            fs.ensureDirSync(doneSubFolder + delimiter + folder);
             await axios.put(url + '/end-users/' + endUser._id, endUser, defaultRequestConfig);
         }
 
         var filesExtended = [];
         for (j = 0; j < files.length; j++) {
             var file = files[j];
-            var stat = fs.statSync(fullFolderPath + '/' + file);
+            var stat = fs.statSync(fullFolderPath + delimiter + file);
             filesExtended.push({stat: stat, date: stat.mtime, filename: file});
         }
 
@@ -120,7 +122,7 @@ const importFolder = async (root1, folders, skipUnexistingFolders) => {
 
         for (j = 0; j < filesExtended.length; j++) {
             var fileExtended = filesExtended[j];
-            var fullPath = path.resolve(fullFolderPath + '/' + fileExtended.filename);
+            var fullPath = path.resolve(fullFolderPath + delimiter + fileExtended.filename);
             if (!fileExtended.stat.isDirectory() && fileExtended.filename.toLowerCase().endsWith('.tif')) {
                 logger.info('Converting ' + fileExtended.filename + ' to png!');
                 execSync(config.import.pngerExecutable + ' -i ' + fullPath + ' -o ' + fullFolderPath);
@@ -128,7 +130,7 @@ const importFolder = async (root1, folders, skipUnexistingFolders) => {
                 var pngFilename = filenameToPng(fileExtended.filename);
                 fileExtended.filename = pngFilename;
                 logger.info('Importing as ' + fileExtended.filename);
-                fullPath = path.resolve(fullFolderPath + '/' + fileExtended.filename);
+                fullPath = path.resolve(fullFolderPath + delimiter + fileExtended.filename);
             }
             if (!fileExtended.stat.isDirectory() && fileExtended.filename.endsWith('.png')) {
                 pngCounter++;
@@ -158,9 +160,9 @@ const importFolder = async (root1, folders, skipUnexistingFolders) => {
                     const newFileResponse = await axios.post(url + '/folders/' + folder, formData, request_config)
                     .then((response) => {
                         ///console.log(fileExtended.filename);
-                        fs.moveSync(fullFolderPath + '/' + fileExtended.filename, doneSubFolder + '/' + folder + '/' + fileExtended.filename);
+                        fs.moveSync(fullFolderPath + delimiter + fileExtended.filename, doneSubFolder + delimiter + folder + delimiter + fileExtended.filename);
                         if (fileExtended.originalFilename) {
-                            fs.moveSync(fullFolderPath + '/' + fileExtended.originalFilename, doneSubFolder + '/' + folder + '/' + fileExtended.originalFilename);
+                            fs.moveSync(fullFolderPath + delimiter + fileExtended.originalFilename, doneSubFolder + delimiter + folder + delimiter + fileExtended.originalFilename);
                         }
                     })
                 } else {
@@ -185,14 +187,13 @@ const importFolder = async (root1, folders, skipUnexistingFolders) => {
     defaultRequestConfig.headers.authorization = token;
     var root = config.import.importFolder + '/' + config.import.subFolders.readyForImport;
     var skipUnexistingFolders = config.import.skipUnexistingFolders
-    if (process.argv[4]) {
-        root = process.argv[4]; 
-        skipUnexistingFolders = false;
-    } 
+    if (process.argv[4] && process.argv[4] === 'linux') {
+        delimiter = '/';
+    }
     
     var files = fs.readdirSync(root);
     var folders = files.filter(file => {
-        var stat = fs.statSync(root + '/' + file);
+        var stat = fs.statSync(root + delimiter + file);
         return stat.isDirectory();
     })
 
