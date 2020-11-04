@@ -125,7 +125,7 @@ const importFolder = async (root1, folders, skipUnexistingFolders) => {
             var fullPath = path.resolve(fullFolderPath + delimiter + fileExtended.filename);
             if (!fileExtended.stat.isDirectory() && fileExtended.filename.toLowerCase().endsWith('.tif')) {
                 logger.info('Converting ' + fileExtended.filename + ' to png!');
-                execSync(config.import.pngerExecutable + ' -i ' + fullPath + ' -o ' + fullFolderPath);
+                execSync(config.import.pngerExecutable + ' -i "' + fullPath + '" -o ' + fullFolderPath);
                 fileExtended.originalFilename = fileExtended.filename;
                 var pngFilename = filenameToPng(fileExtended.filename);
                 fileExtended.filename = pngFilename;
