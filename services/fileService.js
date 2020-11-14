@@ -3,14 +3,15 @@ const Files = require('../models/fileModel');
 const ObjectId = require('mongoose').Types.ObjectId;
 var fs = require('fs');
 const pageService = require('./pageService');
+const logger = require('../log4js-config').getLogger('fileService');
 
 
 function createFolder(folder, callback) {
     folder.fileType = "folder";
-    if (folder.ordinalNumber === null || typeof folder.ordinalNumber ==="undefined") {
+    if (folder.ordinalNumber === null || typeof folder.ordinalNumber === "undefined") {
         folder.ordinalNumber = 1;
     }
-    Files.create(folder, function(err, docs) {
+    Files.create(folder, function (err, docs) {
         callback(err, docs);
     })
 }
@@ -18,7 +19,7 @@ function createFolder(folder, callback) {
 function getAllFolders(query, callback) {
 
     if (typeof query.parentFolder === "undefined") {
-        query["parentFolder"] = {$exists : false};
+        query["parentFolder"] = { $exists: false };
     }
     query.type = 0;
 
@@ -34,7 +35,7 @@ async function getAllFilesByFolder(id, query) {
     if (ObjectId.isValid(id)) {
         query.parentFolder = id;
     } else {
-        let parentFolder = await Files.findOne({name: id});
+        let parentFolder = await Files.findOne({ name: id });
         query.parentFolder = parentFolder._id;
     }
     let pageInfo = pageService.pageInfo(query)
@@ -85,7 +86,7 @@ function getOne(id, callback) {
 }
 
 function getOneByName(name, callback) {
-     Files.findOne({name: name}, function (err, doc) {
+    Files.findOne({ name: name }, function (err, doc) {
         callback(err, doc);
     });
 }
@@ -108,7 +109,7 @@ async function saveFile(parentFolder, inputFile, data) {
     if (ObjectId.isValid(parentFolder)) {
         file.parentFolder = ObjectId(parentFolder);
     } else {
-        var folder = await Files.findOne({"name" : parentFolder, "fileType": "folder"});
+        var folder = await Files.findOne({ "name": parentFolder, "fileType": "folder" });
         if (typeof folder === "undefined" || folder === null) {
             return;
         }
@@ -118,7 +119,7 @@ async function saveFile(parentFolder, inputFile, data) {
         return;
     }
     const filePath = "uploads/" + inputFile.filename;
-    if (data.content === "presentation" ) {
+    if (data.content === "presentation") {
         file.presentation = {};
         file.presentation.data = fs.readFileSync(filePath);
         file.presentation.contentType = inputFile.mimetype;
@@ -132,6 +133,42 @@ async function saveFile(parentFolder, inputFile, data) {
     fs.unlinkSync(filePath);
 }
 
+async function saveFiles(parentFolder, inputFiles, allData) {
+    var filenames = allData.filename.split(';');
+    let ordinalNumbers = allData.ordinalNumber.split(';');
+    let content = allData.content;
+    for (var i = 0; i < inputFiles.length; i++) {
+        var data = {
+            content: content,
+            filename: filenames[i],
+            ordinalNumber: ordinalNumbers[i]
+        }
+        console.log(inputFiles[i]);
+        console.log(data);
+        await saveFile(parentFolder, inputFiles[i], data);
+    }
+}
+
+function deleteFile(id, callback, ids, index) {
+    logger.debug("Delete file with id: ", id);
+    Files.findByIdAndDelete(id, function (err) {
+        if (err) {
+            callback(err);
+            return;
+        }
+        if (ids && index < ids.length - 1) {
+            index++;
+            deleteFile(ids[index], callback, ids, index);
+        } else {
+            callback(err);
+        }
+    });
+}
+
+function deleteFiles(ids, callback) {
+    deleteFile(ids[0], callback, ids, 0);
+}
+
 exports.createFolder = createFolder;
 exports.getAllFolders = getAllFolders;
 exports.getAll = getAll;
@@ -141,3 +178,6 @@ exports.saveFile = saveFile;
 exports.getBinary = getBinary;
 exports.getAllFilesByFolder = getAllFilesByFolder;
 exports.updateFileData = updateFileData;
+exports.saveFiles = saveFiles;
+exports.deleteFile = deleteFile;
+exports.deleteFiles = deleteFiles;

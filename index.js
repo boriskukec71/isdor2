@@ -182,6 +182,41 @@ app.post('/folders/:id', upload.single('image'), async (req, res) => {
     };
 });
 
+app.post('/folders/:id/multiple', upload.fields([
+    {name : 'image', maxCount: 10}]), async (req, res) => {
+    try {
+        await fileService.saveFiles(req.params.id, req.files.image, req.body);
+        res.sendStatus(200);
+    } catch (err) {
+        logger.error(err);
+        res.sendStatus(500);
+    };
+});
+
+app.delete('/files/:id', (req, res) => {
+    fileService.deleteFile(req.params.id, function (err) {
+        if (err) {
+            logger.error(err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    })
+})
+
+app.delete('/files', (req, res) => {
+    fileService.deleteFiles(req.query.id, function (err) {
+        if (err) {
+            logger.error(err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+})
+
+
+// app user acrss logs
 app.get('/app-user-access-logs', async (req, res) => {
     try {
         let docs = await appUserAccessLogService.getAll(req.query);

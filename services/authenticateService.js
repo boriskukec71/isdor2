@@ -7,8 +7,8 @@ const bcrypt = require('bcrypt');
 function authenticateToken(req, res, next) {
     // Gather the jwt access token from the request header
     const token = req.headers['authorization']
-    logger.debug('[' + req.correlationId() + '] Authenticating token: ' + token);
     if (!token) {
+        logger.error('[' + req.correlationId() + '] No authorization token!');
         return res.sendStatus(401);
     } // if there isn't any token
 
@@ -21,7 +21,7 @@ function authenticateToken(req, res, next) {
             logger.debug('[' + req.correlationId() + '] Authenticating error! ', err);
             return res.sendStatus(403);
         }
-        logger.debug('[' + req.correlationId() + '] Successfully loged in : ' + user);
+        //logger.debug('[' + req.correlationId() + '] Successfully loged in : ' + user);
         req.user = user
         next(); // pass the execution off to whatever request the client intended
     })
