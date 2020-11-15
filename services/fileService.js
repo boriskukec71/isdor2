@@ -4,6 +4,9 @@ const ObjectId = require('mongoose').Types.ObjectId;
 var fs = require('fs');
 const pageService = require('./pageService');
 const logger = require('../log4js-config').getLogger('fileService');
+const config = require('../isidorConfig')
+const path = require('path');
+const { execSync } = require('child_process');
 
 
 function createFolder(folder, callback) {
@@ -100,6 +103,15 @@ function updateFileData(id, data, callback) {
 async function saveFile(parentFolder, inputFile, data) {
     var file = new Files;
     file.name = inputFile.originalname;
+
+    var presentationFilePath;
+    if (inputFile.mimetype === 'application/pdf') {
+        const pdfFolder = inputFile.path.split('.').slice(0, -1).join('.');
+        const pngFilename = '001_' + inputFile.filename.split('.').slice(0, -1).join('.') + '.png';
+        fs.mkdirSync(pdfFolder);
+        execSync(config.pngerExecutable + ' -i "' + inputFile.path + '" -o "' + pdfFolder + '"');
+        presentationFilePath = pdfFolder + '/' + pngFilename;
+    }
     file.fileType = "file";
     file.isBinaryContent = true;
     file.ordinalNumber = data.ordinalNumber;
@@ -124,9 +136,15 @@ async function saveFile(parentFolder, inputFile, data) {
         file.presentation.data = fs.readFileSync(filePath);
         file.presentation.contentType = inputFile.mimetype;
     } else {
+        console.log(presentationFilePath);
         file.content = {};
         file.content.data = fs.readFileSync(filePath);
         file.content.contentType = inputFile.mimetype;
+        if (presentationFilePath) {
+            file.presentation = {};
+            file.presentation.data = fs.readFileSync(presentationFilePath);
+            file.presentation.contentType = 'image/png';
+        }
     }
     await file.save();
     // TODO clear uploads folder

@@ -19,6 +19,7 @@ const config = {
             }
         }
     },
+    pngerExecutable: "java -jar -Dlog4j.configurationFile=/home/boris/git2/pnger/src/main/resources/log4j2.xml /home/boris/git2/pnger/target/pnger-1.0-SNAPSHOT.jar"
 }
 
 module.exports = config;
