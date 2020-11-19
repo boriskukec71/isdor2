@@ -7,7 +7,19 @@ const logger = require('../log4js-config').getLogger('fileService');
 const config = require('../isidorConfig')
 const path = require('path');
 const { execSync } = require('child_process');
+const { exec } = require('child_process');
 
+/// TODO put this into separate service
+function execShellCommand(cmd) {
+    return new Promise((resolve, reject) => {
+     exec(cmd, (error, stdout, stderr) => {
+      if (error) {
+       logger.error(error);
+      }
+      resolve(stdout? stdout : stderr);
+     });
+    });
+   }
 
 function createFolder(folder, callback) {
     folder.fileType = "folder";
@@ -101,17 +113,23 @@ function updateFileData(id, data, callback) {
 }
 
 async function saveFile(parentFolder, inputFile, data) {
-    var file = new Files;
-    file.name = inputFile.originalname;
 
-    var presentationFilePath;
     if (inputFile.mimetype === 'application/pdf') {
         const pdfFolder = inputFile.path.split('.').slice(0, -1).join('.');
         const pngFilename = '001_' + inputFile.filename.split('.').slice(0, -1).join('.') + '.png';
+        var presentationFilePath = pdfFolder + '/' + pngFilename;
         fs.mkdirSync(pdfFolder);
-        execSync(config.pngerExecutable + ' -i "' + inputFile.path + '" -o "' + pdfFolder + '"');
-        presentationFilePath = pdfFolder + '/' + pngFilename;
+        await execShellCommand(config.pngerExecutable + ' -i "' + inputFile.path + '" -o "' + pdfFolder + '" -p 1');
+        await saveFileInternal(parentFolder, inputFile, data, presentationFilePath);
+        return;
     }
+    await saveFileInternal(parentFolder, inputFile, data)
+}
+    
+async function saveFileInternal(parentFolder, inputFile, data, presentationFilePath) {
+    var file = new Files;
+    file.name = inputFile.originalname;
+
     file.fileType = "file";
     file.isBinaryContent = true;
     file.ordinalNumber = data.ordinalNumber;
