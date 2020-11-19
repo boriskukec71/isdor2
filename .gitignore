@@ -10,6 +10,10 @@ dist/
 # Compiled Java class files
 *.class
 
+*onfig.json
+import/importFormDiskConfig.js
+isidorConfig.js
+
 # Compiled Python bytecode
 *.py[cod]
 
