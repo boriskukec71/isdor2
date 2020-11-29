@@ -205,7 +205,7 @@ app.delete('/files/:id', (req, res) => {
 })
 
 app.delete('/files', (req, res) => {
-    fileService.deleteFiles(req.query.id, function (err) {
+    fileService.deleteFiles(req.query.id, undefined, function (err) {
         if (err) {
             logger.error(err);
             res.sendStatus(500);
@@ -215,6 +215,16 @@ app.delete('/files', (req, res) => {
     });
 })
 
+app.delete('/folders/:id/files', (req, res) => {
+    fileService.deleteFiles(undefined, req.params.id, function (err) {
+        if (err) {
+            logger.error(err);
+            res.sendStatus(500);
+        } else {
+            res.sendStatus(200);
+        }
+    });
+})
 
 // app user acrss logs
 app.get('/app-user-access-logs', async (req, res) => {

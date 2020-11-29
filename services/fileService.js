@@ -201,7 +201,13 @@ function deleteFile(id, callback, ids, index) {
     });
 }
 
-function deleteFiles(ids, callback) {
+function deleteFiles(ids, folderId, callback) {
+    if (folderId) {
+        Files.deleteMany({ parentFolder: folderId }, function (err) {
+            callback(err);
+        });
+        return;
+    }
     deleteFile(ids[0], callback, ids, 0);
 }
 

@@ -16,7 +16,7 @@ var AppUserSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ['user', 'admin'],
+        enum: ['user', 'admin', 'read'],
         default: 'user',
         required: true
     },
