@@ -12,6 +12,7 @@ const authenticate = require('./services/authenticateService')
 const authorize = require('./services/authorizationService')
 const log4js = require('./log4js-config');
 const logger = log4js.getLogger('index');
+const config = require('./isidorConfig');
 
 const UPLOAD_PATH = './uploads'
 
@@ -286,8 +287,19 @@ delete req.body.password2;
     })
 });
 
+if (!config.https) {
+    app.listen(config.port, () => {
+        console.log(`isidor2 server listening on ${config.port}`);
+    }); 
+    return;
+}
 
-const port = 4000;
-app.listen(port, () => {
-    console.log(`isidor2 server listening on ${port}`);
-});
+var fs = require('fs');
+var http = require('http');
+var https = require('https');
+var privateKey  = fs.readFileSync('sslcrt/isidor2-selfsigned.key', 'utf8');
+var certificate = fs.readFileSync('sslcrt/isidor2-selfsigned.crt', 'utf8');
+var credentials = {key: privateKey, cert: certificate};
+
+var httpsServer = https.createServer(credentials, app);
+httpsServer.listen(port);

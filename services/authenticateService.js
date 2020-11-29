@@ -23,7 +23,7 @@ function authenticateToken(req, res, next) {
         }
         //logger.debug('[' + req.correlationId() + '] Successfully loged in : ' + user);
         req.user = user
-        next(); // pass the execution off to whatever request the client intended
+        next(); 
     })
 }
 
