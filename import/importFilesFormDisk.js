@@ -183,7 +183,6 @@ const importFolder = async (root1, folders, skipUnexistingFolders) => {
 
     const response = await axios.post(url + '/login', {username: process.argv[2], password:process.argv[3]}); 
     token = response.data.token;
-    console.log('Authorization: ' + token);
     defaultRequestConfig.headers.authorization = token;
     var root = config.import.importFolder + '/' + config.import.subFolders.readyForImport;
     var skipUnexistingFolders = config.import.skipUnexistingFolders
