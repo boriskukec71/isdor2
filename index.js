@@ -230,6 +230,7 @@ app.delete('/folders/:id/files', (req, res) => {
 // app user acrss logs
 app.get('/app-user-access-logs', async (req, res) => {
     try {
+        console.log(req.query);
         let docs = await appUserAccessLogService.getAll(req.query);
         res.json(docs);
     } catch (err) {

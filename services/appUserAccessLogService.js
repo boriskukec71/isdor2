@@ -1,4 +1,5 @@
 require('../connection/connection')
+const { copySync } = require('fs-extra');
 const AppUserAccessLogs = require('../models/appUserAccessLogModel');
 const pageService = require('./pageService');
 
@@ -8,6 +9,8 @@ const pageService = require('./pageService');
 async function getAll(query) {
     let pageInfo = pageService.pageInfo(query)
     pageService.searchAny(query);
+    pageService.searchInterval(query, 'time');
+console.log(query);
     let sort = pageService.sortBy(query);
     if (Object.keys(sort).length === 0) {
         sort['time'] = -1;

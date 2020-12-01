@@ -74,6 +74,26 @@ function searchAny(query, inStringProperties) {
     }
 }
 
+function searchInterval(query, property) {
+    if (!query[property]) {
+        return;
+    }
+    query[property] = query[property].filter(item => item !== '');
+    if (query[property].length === 2) {
+        var values = query[property];
+        query[property] = { "$gte": values[0], "$lt": values[1] }; 
+        return;
+    }
+    if (query[property].length === 1) {
+        var value1 = new Date(query[property][0]);
+        var value2 = new Date(query[property][0]);
+        value2.setDate(value2.getDate() + 1);
+        query[property] = { "$gte": value1, "$lt": value2}; 
+        return;
+    }
+    delete query[property];
+}
+
 function sortBy(query) {
     var sort = {}
     if (!query.sortBy) {
@@ -97,3 +117,4 @@ exports.nextPage = nextPage;
 exports.prevPage = prevPage;
 exports.searchAny = searchAny;
 exports.sortBy = sortBy;
+exports.searchInterval = searchInterval;
