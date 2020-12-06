@@ -13,6 +13,7 @@ const authorize = require('./services/authorizationService')
 const log4js = require('./log4js-config');
 const logger = log4js.getLogger('index');
 const config = require('./isidorConfig');
+const importService = require('./services/importService'); 
 
 const UPLOAD_PATH = './uploads'
 
@@ -51,6 +52,37 @@ app.get('/', (req, res) => {
 app.post('/login', authenticate.logIn);
 app.all('*', authenticate.authenticateToken);
 app.all('*', authorize.auathorizeUser);
+
+app.get('/imports/locations', (req, res) => {
+    importService.getAllImportLocations(function (err, folders) {
+        if (!err) {
+            res.json(folders);
+        } else {
+            res.sendStatus(500);
+        }
+    });
+});
+
+app.get('/imports', async (req, res) => {
+    try {
+        var query = req.query;
+        let docs = await importService.getAll(query);
+        res.json(docs);
+    } catch (err) {
+        res.sendStatus(500);
+    };
+});
+
+app.post('/imports', async (req, res) => {
+    try {
+        var importLocation = req.body.importLocation;
+        const token = req.headers['authorization']
+        importService.start(importLocation, token, req.user.username);
+        res.sendStatus(200);
+    } catch (err) {
+        res.sendStatus(500);
+    };
+});
 
 app.get('/folders', (req, res) => {
     fileService.getAllFolders({}, function (err, docs) {

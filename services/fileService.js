@@ -154,7 +154,6 @@ async function saveFileInternal(parentFolder, inputFile, data, presentationFileP
         file.presentation.data = fs.readFileSync(filePath);
         file.presentation.contentType = inputFile.mimetype;
     } else {
-        console.log(presentationFilePath);
         file.content = {};
         file.content.data = fs.readFileSync(filePath);
         file.content.contentType = inputFile.mimetype;
@@ -179,8 +178,6 @@ async function saveFiles(parentFolder, inputFiles, allData) {
             filename: filenames[i],
             ordinalNumber: ordinalNumbers[i]
         }
-        console.log(inputFiles[i]);
-        console.log(data);
         await saveFile(parentFolder, inputFiles[i], data);
     }
 }

@@ -27,6 +27,9 @@ isidorConfig.js
 # Maven
 target/
 dist/
+log/
+logs/
+sslcrt/
 
 # JetBrains IDE
 .idea/

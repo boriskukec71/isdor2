@@ -68,7 +68,8 @@ function searchAny(query, inStringProperties) {
     if (inStringProperties && inStringProperties.length > 0) {
         for(const inStringProperty of inStringProperties) {
             if (query[inStringProperty]) {
-                query[inStringProperty]= {"$regex" : query[inStringProperty].toUpperCase()};
+                var regex = new RegExp([query[inStringProperty]].join(""), "i");
+                query[inStringProperty]= {"$regex" : regex };//"/" + query[inStringProperty].toUpperCase() + "/i"};
             }
         }
     }
