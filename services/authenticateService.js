@@ -41,7 +41,7 @@ function logIn(req, res) {
 }
 
 function validate(username, password, res) {
-    AppUsers.findOne({ username: username }, function (err, appUser) {
+    AppUsers.findOne({ username: username, status: "active" }, function (err, appUser) {
         if (!appUser) {
             res.status(401).end();
             return;

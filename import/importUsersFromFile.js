@@ -3,6 +3,7 @@ const axios = require("axios");
 const config = require("./importFormDiskConfig");
 const readline = require('readline');
 const iconv = require('iconv-lite');
+var os = require('os');
 
 var log4js = require("log4js");
 
@@ -15,22 +16,17 @@ log4js.configure({
     }
 });
 
+var delimiter ='\\';
+var outputMessage = 'DONE';
 
 log4js.getLogger().level = "debug";
 const logger = log4js.getLogger();
 
-// 1. get all subfolders form . folder
-// 2. take subfolder name as idNumber
-// 3. post /end-users/:idNmber/folder
-// 4. take all files from subflder
-// 5. post file to /folders/:idNumber
-
-
 const url = config.protocol + "://" + config.host + ":" + config.port
 
-const importFile = async (file, userType, cp) => {
+const importFile = async (file, cp) => {
 
-    var fileStream = fs.createReadStream(file);
+    var fileStream = fs.createReadStream(config.import.importFolder + delimiter + file);
        
     if (cp) {
         fileStream = fileStream.pipe(iconv.decodeStream(cp));
@@ -43,10 +39,14 @@ const importFile = async (file, userType, cp) => {
     // Note: we use the crlfDelay option to recognize all instances of CR LF
     // ('\r\n') in input.txt as a single line break.
     var lineIndex = 1;
+    var userType = 'user'; 
     for await (const line of rl) {
         logger.info(`Importing line: ${line}`);
         var words = line.split(";");
         var index = -1;
+        if (lineIndex === 1 && words.length < 8) {
+            userType = 'building'
+        }
         var endUser = { userType: userType, homeNo: "" };
         for await (const word of words) {
             index++;
@@ -57,7 +57,12 @@ const importFile = async (file, userType, cp) => {
                     continue; 
                 }
                 if (index === 1) {
+                    endUser.city = wordTrimed; 
+                    continue
+                }
+                if (index === 2) {
                     endUser.name = wordTrimed; 
+                    continue
                 }
                 continue;
             }
@@ -123,20 +128,31 @@ const importFile = async (file, userType, cp) => {
     }
 }
 
-
-
 (async () => {
-    var file = process.argv[2];
-    var userType = process.argv[3];
-    var cp;
-    if (process.argv.length === 5) {  // win1250 for txt from progress
-        cp = process.argv[4];
+    try {
+        const argv = yargs(hideBin(process.argv)).argv
+        if (os.platform() === 'linux') {
+            delimiter = '/';
+        }
+        var file =  argv.file;
+        var token =  argv.token;
+        var username =  argv.username;
+        var cp = 'win1250';
+        if (argv.cp) {  // win1250 for txt from progress
+            cp = argv.cp;
+        } else if (config.cp) {
+            cp = config.cp;
+        }
+
+        logger.info(`Importing file: ${file}`);
+
+        await importFile(file, cp);
+
+        logger.info(`Finished importing file: ${file}`);
+    } catch (error) {
+        logger.error(error);
+        outputMessage = 'ERROR'
     }
-
-    logger.info(`Importing file: ${file}`);
-
-    await importFile(file, userType, cp);
-
-    logger.info(`Finished importing file: ${file}`);
+    console.log(outputMessage);
 })();
 

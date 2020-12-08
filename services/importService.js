@@ -58,7 +58,17 @@ async function getAll(query) {
 
 async function start(importLocation, token, user) {
     if (importLocation.toLowerCase().endsWith('.csv')) {
-
+        let importDoc = await Imports.create({importLocation: importLocation, createdBy: user, createdAt: new Date(), type:"file", status:"inProgress"});
+        execShellCommand("node ./import/importUsersFromFile.js --token=" + token + " --file=" + importLocation)
+        .then(
+            async function(response) {
+                if (response.endsWith('DONE')) {
+                    await Imports.findByIdAndUpdate(importDoc._id, {status:"done"});
+                } else {
+                    await Imports.findByIdAndUpdate(importDoc._id, {status:"error"});
+                }
+            }
+        );
     } else {
         let importDoc = await Imports.create({importLocation: importLocation, createdBy: user, createdAt: new Date(), type:"folder", status:"inProgress"});
         execShellCommand("node ./import/importFilesFromDisk.js --token=" + token + " --importFrom=" + importLocation)

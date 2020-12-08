@@ -5,7 +5,6 @@ const axios = require('axios');
 const config = require('./importFormDiskConfig');
 const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers')
-const argv = yargs(hideBin(process.argv)).argv
 var FormData = require('form-data');
 var os = require('os');
 
