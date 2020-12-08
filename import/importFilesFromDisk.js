@@ -167,7 +167,6 @@ const importFolder = async (folder, subFolders, skipUnexistingFolders) => {
                 if (!debugOnly) {
                     const newFileResponse = await axios.post(url + '/folders/' + subFolder, formData, request_config)
                     .then((response) => {
-                        ///console.log(fileExtended.filename);
                         fs.moveSync(fullFolderPath + delimiter + fileExtended.filename, doneSubFolder + delimiter + subFolder + delimiter + fileExtended.filename);
                         if (fileExtended.originalFilename) {
                             fs.moveSync(fullFolderPath + delimiter + fileExtended.originalFilename, doneSubFolder + delimiter + subFolder + delimiter + fileExtended.originalFilename);
@@ -225,7 +224,7 @@ const importFolder = async (folder, subFolders, skipUnexistingFolders) => {
         logger.info(`Finished importing files from: ${folder}`);
     } catch (err) {
         logger.error(err);
-        outputMessage === 'ERROR'
+        outputMessage = 'ERROR'
     };
     console.log(outputMessage);
 })();

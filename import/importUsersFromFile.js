@@ -4,6 +4,8 @@ const config = require("./importFormDiskConfig");
 const readline = require('readline');
 const iconv = require('iconv-lite');
 var os = require('os');
+const yargs = require('yargs/yargs')
+const { hideBin } = require('yargs/helpers')
 
 var log4js = require("log4js");
 
@@ -22,7 +24,11 @@ var outputMessage = 'DONE';
 log4js.getLogger().level = "debug";
 const logger = log4js.getLogger();
 
-const url = config.protocol + "://" + config.host + ":" + config.port
+const url = config.protocol + "://" + config.host + ":" + config.port;
+var token;
+var defaultRequestConfig = {
+    headers: {}
+};
 
 const importFile = async (file, cp) => {
 
@@ -98,11 +104,11 @@ const importFile = async (file, cp) => {
         }
         // TODO file za zgrade, vidi ndexe u petlji 
         var endUserId;
-
-        const responseFolder = await axios.get(url + "/folders/" + endUser.idNumber);
+logger.info("Headers2", defaultRequestConfig);
+        const responseFolder = await axios.get(url + '/folders/' + endUser.idNumber, defaultRequestConfig);
         if (responseFolder.data === null) {
             logger.info(`Folder ${endUser.idNumber} does not exist! Creting new one.`);
-            const newFolderResponse = await axios.post(url + "/folders", { name: endUser.idNumber, fileType: "folder" });
+            const newFolderResponse = await axios.post(url + "/folders", { name: endUser.idNumber, fileType: "folder" }, defaultRequestConfig);
             endUser.folder = newFolderResponse.data._id;
         } else {
             endUser.folder = responseFolder.data._id;
@@ -110,7 +116,7 @@ const importFile = async (file, cp) => {
 
         const response = await axios.get(url + "/end-users/" + endUser.idNumber);
         if (response.data === null) {
-            const responseNewEndUser = await axios.post(url + "/end-users", endUser);
+            const responseNewEndUser = await axios.post(url + "/end-users", endUser, defaultRequestConfig);
             endUserId = responseNewEndUser.data._id;
         } else {
             logger.info(`End user ${endUser.idNumber} already exist! Updating!`);
@@ -122,7 +128,7 @@ const importFile = async (file, cp) => {
             endUserUpdateData.city = endUser.city;
             endUserUpdateData.userType = endUser.userType;
             endUserUpdateData.folder = endUser.folder;
-            const responseNewEndUser = await axios.put(url + "/end-users/" + endUserId, endUser);
+            const responseNewEndUser = await axios.put(url + "/end-users/" + endUserId, endUser, defaultRequestConfig);
         }
         lineIndex++;
     }
@@ -135,8 +141,15 @@ const importFile = async (file, cp) => {
             delimiter = '/';
         }
         var file =  argv.file;
-        var token =  argv.token;
-        var username =  argv.username;
+        if (argv.username && argv.password) {
+            const response = await axios.post(url + '/login', {username: argv.username, password:argv.password}); 
+            token = response.data.token;
+        } 
+        if (argv.token) {
+            token = argv.token;
+        }
+        logger.info("TOKEN: ", token);
+        defaultRequestConfig.headers.authorization = token;
         var cp = 'win1250';
         if (argv.cp) {  // win1250 for txt from progress
             cp = argv.cp;

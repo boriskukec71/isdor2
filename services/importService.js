@@ -57,12 +57,13 @@ async function getAll(query) {
 }
 
 async function start(importLocation, token, user) {
-    if (importLocation.toLowerCase().endsWith('.csv')) {
+    if (importLocation.toLowerCase().endsWith('.csv') || importLocation.toLowerCase().endsWith('.txt')) {
         let importDoc = await Imports.create({importLocation: importLocation, createdBy: user, createdAt: new Date(), type:"file", status:"inProgress"});
         execShellCommand("node ./import/importUsersFromFile.js --token=" + token + " --file=" + importLocation)
         .then(
             async function(response) {
-                if (response.endsWith('DONE')) {
+                logger.debug("Import of end users ends with: ", response);
+                if (response.indexOf('DONE') >= 0) {
                     await Imports.findByIdAndUpdate(importDoc._id, {status:"done"});
                 } else {
                     await Imports.findByIdAndUpdate(importDoc._id, {status:"error"});
@@ -74,7 +75,9 @@ async function start(importLocation, token, user) {
         execShellCommand("node ./import/importFilesFromDisk.js --token=" + token + " --importFrom=" + importLocation)
         .then(
             async function(response) {
-                if (response.endsWith('DONE')) {
+                logger.debug("Import of files ends with: ", response);
+                console.log(response.indexOf('DONE'));
+                if (response.indexOf('DONE') >= 0) {
                     await Imports.findByIdAndUpdate(importDoc._id, {status:"done"});
                 } else {
                     await Imports.findByIdAndUpdate(importDoc._id, {status:"error"});
