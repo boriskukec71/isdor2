@@ -30,7 +30,7 @@ function getAllImportLocations(callback) {
         }
         var subFolders = [];
         for (var file of files) {
-            if (file.toLowerCase().endsWith('csv')) {
+            if (file.toLowerCase().endsWith('csv') || file.toLowerCase().endsWith('txt')) {
                 subFolders.push(file);
             }
             var stat = fs.statSync(importConfig.import.importFolder + '/' + file);
@@ -76,7 +76,6 @@ async function start(importLocation, token, user) {
         .then(
             async function(response) {
                 logger.debug("Import of files ends with: ", response);
-                console.log(response.indexOf('DONE'));
                 if (response.indexOf('DONE') >= 0) {
                     await Imports.findByIdAndUpdate(importDoc._id, {status:"done"});
                 } else {

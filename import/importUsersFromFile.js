@@ -11,7 +11,7 @@ var log4js = require("log4js");
 
 log4js.configure({
     appenders: {
-        everything: { type: 'file', filename: 'isidor2ImprtUsers.log', maxLogSize: 10485760, backups: 3, compress: true }
+        everything: { type: 'file', filename: './logs/isidor2ImportUsers.log', maxLogSize: 10485760, backups: 3, compress: true }
     },
     categories: {
         default: { appenders: ['everything'], level: 'debug' }
@@ -50,7 +50,7 @@ const importFile = async (file, cp) => {
         logger.info(`Importing line: ${line}`);
         var words = line.split(";");
         var index = -1;
-        if (lineIndex === 1 && words.length < 8) {
+        if (lineIndex === 1 && words.length < 4) {
             userType = 'building'
         }
         var endUser = { userType: userType, homeNo: "" };
@@ -63,10 +63,6 @@ const importFile = async (file, cp) => {
                     continue; 
                 }
                 if (index === 1) {
-                    endUser.city = wordTrimed; 
-                    continue
-                }
-                if (index === 2) {
                     endUser.name = wordTrimed; 
                     continue
                 }
@@ -104,7 +100,6 @@ const importFile = async (file, cp) => {
         }
         // TODO file za zgrade, vidi ndexe u petlji 
         var endUserId;
-logger.info("Headers2", defaultRequestConfig);
         const responseFolder = await axios.get(url + '/folders/' + endUser.idNumber, defaultRequestConfig);
         if (responseFolder.data === null) {
             logger.info(`Folder ${endUser.idNumber} does not exist! Creting new one.`);
@@ -114,7 +109,7 @@ logger.info("Headers2", defaultRequestConfig);
             endUser.folder = responseFolder.data._id;
         }
 
-        const response = await axios.get(url + "/end-users/" + endUser.idNumber);
+        const response = await axios.get(url + "/end-users/" + endUser.idNumber, defaultRequestConfig);
         if (response.data === null) {
             const responseNewEndUser = await axios.post(url + "/end-users", endUser, defaultRequestConfig);
             endUserId = responseNewEndUser.data._id;
