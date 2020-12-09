@@ -165,13 +165,12 @@ const importFolder = async (folder, subFolders, skipUnexistingFolders) => {
                     }
                 };
                 if (!debugOnly) {
-                    const newFileResponse = await axios.post(url + '/folders/' + subFolder, formData, request_config)
-                    .then((response) => {
-                        fs.moveSync(fullFolderPath + delimiter + fileExtended.filename, doneSubFolder + delimiter + subFolder + delimiter + fileExtended.filename);
-                        if (fileExtended.originalFilename) {
-                            fs.moveSync(fullFolderPath + delimiter + fileExtended.originalFilename, doneSubFolder + delimiter + subFolder + delimiter + fileExtended.originalFilename);
-                        }
-                    })
+                    const newFileResponse = await axios.post(url + '/folders/' + subFolder, formData, request_config);
+                    logger.debug('Import of ' + realFilename + ' done moving files to outuput folder!');
+                    fs.moveSync(fullFolderPath + delimiter + fileExtended.filename, doneSubFolder + delimiter + subFolder + delimiter + fileExtended.filename);
+                    if (fileExtended.originalFilename) {
+                        fs.moveSync(fullFolderPath + delimiter + fileExtended.originalFilename, doneSubFolder + delimiter + subFolder + delimiter + fileExtended.originalFilename);
+                    }
                 } else {
                     logger.debug('Imported: ' + fullPath + ' as ' + ordinalNumber + ' file in folder ' + subFolder);
                 }
@@ -179,7 +178,10 @@ const importFolder = async (folder, subFolders, skipUnexistingFolders) => {
         }
         var filesAfter = fs.readdirSync(fullFolderPath);
         if (filesAfter.length === 0) {
+            logger.debug('Import of ' + fullFolderPath + ' done removing folder!');
             fs.rmdirSync(fullFolderPath);
+        } else {
+            logger.debug('Import of ' + fullFolderPath + ' not done completely! ' + filesAfter.length + ' files remaining!');
         }
 
     }
