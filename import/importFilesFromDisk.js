@@ -199,6 +199,9 @@ const importFolder = async (folder, subFolders, skipUnexistingFolders) => {
             token = argv.token;
         }
         defaultRequestConfig.headers.authorization = token;
+        if (argv.correlationId) {
+            defaultRequestConfig.headers["x-isidor-correlation"] = argv.correlationId;
+        }
         if (os.platform() === 'linux') {
             delimiter = '/';
         }

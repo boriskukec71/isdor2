@@ -11,10 +11,8 @@ function create(endUser, callback) {
     })
 }
 
-function update(id, endUser, callback) {
-    EndUsers.findByIdAndUpdate(id, endUser, { new: true }, function (err, docs) {
-        callback(err, docs);
-    })
+async function update(id, endUser) {
+    return await EndUsers.findByIdAndUpdate(id, endUser, { new: true });
 }
 
 async function getAll(query) {
@@ -25,15 +23,13 @@ async function getAll(query) {
     return pageInfo;
 }
 
-function getOne(id, callback) {
+async function getOne(id) {
     if (ObjectId.isValid(id)) {
-        EndUsers.findById(id, function (err, doc) {
-            callback(err, doc);
-        });
+        let endUser = await EndUsers.findById(id);
+        return endUser;
     } else {
-        EndUsers.findOne({ "idNumber": id }, function (err, doc) {
-            callback(err, doc);
-        });
+        let endUser = await EndUsers.findOne({ "idNumber": id });
+        return endUser;
     }
 }
 

@@ -45,7 +45,7 @@ function isValidId(id) {
 // REST paths //
 app.get('/', (req, res) => {
     res.json({
-        message: 'MEVN Stack!'
+        message: 'isidor2 MEVN Stack!'
     });
 });
 
@@ -95,26 +95,19 @@ app.get('/folders', (req, res) => {
     });
 });
 
-app.get('/folders/:id', (req, res) => {
-    if (isValidId(req.params.id)) {
-        fileService.getOne(req.params.id, function (err, docs) {
-            if (!err) {
-                res.json(docs);
-            } else {
-                console.log(err);
-                next(err);
-            }
-        });
-        return;
-    }
-    fileService.getOneByName(req.params.id, function (err, docs) {
-        if (!err) {
-            res.json(docs);
-        } else {
-            console.log(err);
-            next(err);
+app.get('/folders/:id', async (req, res) => {
+    try {
+        if (isValidId(req.params.id)) {
+            let doc = await fileService.getOne(req.params.id);
+            res.json(doc);
+            return;
         }
-    });
+        let doc = await fileService.getOneByName(req.params.id); 
+        res.json(doc);
+    }catch (err) {
+        console.log(err);
+        next(err);
+    }
 });
 
 app.post('/folders', (req, res) => {
@@ -139,15 +132,14 @@ app.get('/end-users', async (req, res) => {
     };
 });
 
-app.get('/end-users/:id', (req, res) => {
-    endUserService.getOne(req.params.id, function (err, doc) {
-        if (!err) {
-            res.json(doc);
-        } else {
-            console.log(err);
-            next(err);
-        }
-    });
+app.get('/end-users/:id', async (req, res) => {
+    try {
+        let doc = await endUserService.getOne(req.params.id);
+        res.json(doc);
+    }  catch (err) {
+        console.log(err);
+        res.send(500);
+    };
 });
 
 app.post('/end-users', (req, res) => {
@@ -161,15 +153,14 @@ app.post('/end-users', (req, res) => {
     })
 });
 
-app.put('/end-users/:id', (req, res) => {
-    endUserService.update(req.params.id, req.body, function (err, docs) {
-        if (!err) {
-            res.json(docs);
-        } else {
-            console.log(err);
-            res.send(500);
-        }
-    })
+app.put('/end-users/:id', async (req, res) => {
+    try {
+        let doc = await endUserService.update(req.params.id, req.body);
+        res.json(doc);
+    }  catch (err) {
+        console.log(err);
+        res.send(500);
+    };
 });
 
 app.get('/folders/:id/files', async (req, res) => {
@@ -226,51 +217,44 @@ app.post('/folders/:id/multiple', upload.fields([
     };
 });
 
-app.delete('/files/:id', (req, res) => {
-    fileService.deleteFile(req.params.id, function (err) {
-        if (err) {
-            logger.error(err);
-            res.sendStatus(500);
-        } else {
-            res.sendStatus(200);
-        }
-    })
+app.delete('/files/:id', async (req, res) => {
+    try {
+        await fileService.deleteFile(req.params.id);
+        res.sendStatus(200);
+    } catch (err) {
+        logger.error(err);
+        res.sendStatus(500);
+    }
 })
 
-app.delete('/files', (req, res) => {
-    fileService.deleteFiles(req.query.id, undefined, function (err) {
-        if (err) {
-            logger.error(err);
-            res.sendStatus(500);
-        } else {
-            res.sendStatus(200);
-        }
-    });
+app.delete('/files', async (req, res) => {
+    try {
+        await fileService.deleteFiles(req.query.id, undefined);
+        res.sendStatus(200);
+    } catch (err) {
+        logger.error(err);
+        res.sendStatus(500);
+    }
 })
 
-app.delete('/folders/:id/files', (req, res) => {
-    fileService.deleteFiles(undefined, req.params.id, function (err) {
-        if (err) {
-            logger.error(err);
-            res.sendStatus(500);
-        } else {
-            res.sendStatus(200);
-        }
-    });
+app.delete('/folders/:id/files', async (req, res) => {
+    try {
+        await fileService.deleteFiles(undefined, req.params.id);
+        res.sendStatus(200);
+    } catch (err) {
+        logger.error(err);
+        res.sendStatus(500);
+    }
 })
 
 // app user acrss logs
 app.get('/app-user-access-logs', async (req, res) => {
     try {
-        console.log(req.query);
         let docs = await appUserAccessLogService.getAll(req.query);
         res.json(docs);
     } catch (err) {
         console.log(err);
         res.sendStatus(500);
-        /*
-        console.log(err);
-        next(err); */
     };
 });
 
@@ -285,15 +269,14 @@ app.get('/app-users', async (req, res) => {
     };
 });
 
-app.get('/app-users/:id', (req, res) => {
-    appUserService.getOne(req.params.id, function (err, doc) {
-        if (!err) {
-            res.json(doc);
-        } else {
-            console.log(err);
-            res.send(500);;
-        }
-    });
+app.get('/app-users/:id', async (req, res) => {
+    try {
+        let doc = await appUserService.getOne(req.params.id);
+        res.json(doc);
+    }  catch (err) {
+        console.log(err);
+        res.send(500);
+    };
 });
 
 app.post('/app-users', (req, res) => {
@@ -308,8 +291,7 @@ app.post('/app-users', (req, res) => {
 });
 
 app.put('/app-users/:id', (req, res) => {
-
-delete req.body.password2;
+    delete req.body.password2;
     appUserService.update(req.params.id, req.body, function (err, docs) {
         if (!err) {
             res.json(docs);
@@ -320,19 +302,35 @@ delete req.body.password2;
     })
 });
 
+var server;
+
+var http = require('http');
 if (!config.https) {
-    app.listen(config.port, () => {
-        console.log(`isidor2 server listening on ${config.port}`);
+    server = http.createServer(app);
+    server.listen(config.port, () => {
+        console.log(`isidor2 http server listening on ${config.port}`);
     }); 
-    return;
+} else {
+    var fs = require('fs');
+    var https = require('https');
+    var privateKey  = fs.readFileSync('sslcrt/isidor2-selfsigned.key', 'utf8');
+    var certificate = fs.readFileSync('sslcrt/isidor2-selfsigned.crt', 'utf8');
+    var credentials = {key: privateKey, cert: certificate};
+
+    server = https.createServer(credentials, app);
+    server.listen(config.port, () => {
+        console.log(`isidor2 https server listening on ${config.port}`);
+    }); 
 }
 
-var fs = require('fs');
-var http = require('http');
-var https = require('https');
-var privateKey  = fs.readFileSync('sslcrt/isidor2-selfsigned.key', 'utf8');
-var certificate = fs.readFileSync('sslcrt/isidor2-selfsigned.crt', 'utf8');
-var credentials = {key: privateKey, cert: certificate};
+var terminate = require('./connection/terminate');
+const exitHandler = terminate(server, {
+    coredump: false,
+    timeout: 1000
+  })
 
-var httpsServer = https.createServer(credentials, app);
-httpsServer.listen(port);
+  process.on('uncaughtException', exitHandler(1, 'Unexpected Error'))
+  process.on('unhandledRejection', exitHandler(1, 'Unhandled Promise'))
+  process.on('SIGTERM', exitHandler(0, 'SIGTERM'))
+  process.on('SIGINT', exitHandler(0, 'SIGINT'))
+

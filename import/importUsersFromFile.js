@@ -145,6 +145,9 @@ const importFile = async (file, cp) => {
         }
         logger.info("TOKEN: ", token);
         defaultRequestConfig.headers.authorization = token;
+        if (argv.correlationId) {
+            defaultRequestConfig.headers["x-isidor-correlation"] = argv.correlationId;
+        }
         var cp = 'win1250';
         if (argv.cp) {  // win1250 for txt from progress
             cp = argv.cp;

@@ -39,15 +39,11 @@ async function getAll(query) {
     return pageInfo;
 }
 
-function getOne(id, callback) {
+async function getOne(id) {
     if (ObjectId.isValid(id)) {
-        AppUsers.findById(id, function (err, doc) {
-            callback(err, doc);
-        });
+        return AppUsers.findById(id);
     } else {
-        AppUsers.findOne({ username: id }, function (err, doc) {
-            callback(err, doc);
-        });
+        return AppUsers.findOne({ username: id });
     }
 }
 

@@ -8,7 +8,7 @@ const pageService = require('./pageService');
 // TODO create common serice methods
 async function getAll(query) {
     let pageInfo = pageService.pageInfo(query)
-    pageService.searchAny(query);
+    pageService.searchAny(query, ['urlSlug']);
     pageService.searchInterval(query, 'time');
     let sort = pageService.sortBy(query);
     if (Object.keys(sort).length === 0) {

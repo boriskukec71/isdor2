@@ -1,13 +1,15 @@
 const connection = require('../connection/connection')
 const Files = require('../models/fileModel');
 const ObjectId = require('mongoose').Types.ObjectId;
-var fs = require('fs');
+const fs = require('fs');
 const pageService = require('./pageService');
 const logger = require('../log4js-config').getLogger('fileService');
+const loggerDelete = require('../log4js-config').getLogger('delete');
 const config = require('../isidorConfig')
 const path = require('path');
 const { execSync } = require('child_process');
 const { exec } = require('child_process');
+const correlator = require('express-correlation-id');
 
 /// TODO put this into separate service
 function execShellCommand(cmd) {
@@ -94,16 +96,12 @@ async function getBinary(id, what, res) {
 }
 
 
-function getOne(id, callback) {
-    Files.findById(id, function (err, doc) {
-        callback(err, doc);
-    });
+async function getOne(id, callback) {
+    return await Files.findById(id);
 }
 
-function getOneByName(name, callback) {
-    Files.findOne({ name: name }, function (err, doc) {
-        callback(err, doc);
-    });
+async function getOneByName(name, callback) {
+    return await Files.findOne({ name: name });
 }
 
 function updateFileData(id, data, callback) {
@@ -182,30 +180,23 @@ async function saveFiles(parentFolder, inputFiles, allData) {
     }
 }
 
-function deleteFile(id, callback, ids, index) {
+async function deleteFile(id, callback, ids, index) {
     logger.debug("Delete file with id: ", id);
-    Files.findByIdAndDelete(id, function (err) {
-        if (err) {
-            callback(err);
-            return;
-        }
-        if (ids && index < ids.length - 1) {
-            index++;
-            deleteFile(ids[index], callback, ids, index);
-        } else {
-            callback(err);
-        }
-    });
+    let doc = await Files.findByIdAndDelete(id);
+    let folder = await Files.findById(doc.parentFolder);
+    loggerDelete.info(correlator.getId() + " File with id '" + id  + "', name '" + doc.name + "' in folder '" + folder.name + "' deleted!");
+    if (ids && index < ids.length - 1) {
+        index++;
+        await deleteFile(ids[index], callback, ids, index);
+    } 
 }
 
-function deleteFiles(ids, folderId, callback) {
+async function deleteFiles(ids, folderId, callback) {
     if (folderId) {
-        Files.deleteMany({ parentFolder: folderId }, function (err) {
-            callback(err);
-        });
+        await Files.deleteMany({ parentFolder: folderId });
         return;
     }
-    deleteFile(ids[0], callback, ids, 0);
+    await deleteFile(ids[0], callback, ids, 0);
 }
 
 exports.createFolder = createFolder;

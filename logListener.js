@@ -65,7 +65,6 @@ function getTime(timeString) {
 function getUrlTranslated(url) {
     var urlTranslated = url;
     for (const key of Object.keys(config.accessLogger.translations.pathSegments)) {
-        console.log(key +" "+config.accessLogger.translations.pathSegments[key]);
         urlTranslated = urlTranslated.replace(key, config.accessLogger.translations.pathSegments[key])
     }
     return urlTranslated;
@@ -77,14 +76,14 @@ function getRequestParams(queryParams) {
     } 
 
     var paramPairs = queryParams.split('&');
-    console.log(paramPairs);
+
     var requestParams = {};
     for(var index in paramPairs) {
         var param = paramPairs[index].split('=');
-        console.log(param);
+
         requestParams[param[0]] = param [1];
     }
-console.log(requestParams);
+
     return requestParams;
 }
 

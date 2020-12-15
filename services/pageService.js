@@ -42,8 +42,8 @@ function lastPage(pageInfo) {
 }
 
 function pageInfo(query) {
-    var pageSize = defultPageSize;
-    var page = 1;
+    let pageSize = defultPageSize;
+    let page = 1;
     if (query.size) {
         pageSize = parseInt(query.size);
     }
@@ -52,7 +52,7 @@ function pageInfo(query) {
         page = parseInt(query.page);
     } 
     delete query.page;
-    var pageInfo = { size: pageSize, page: page }
+    let pageInfo = { size: pageSize, page: page }
     return pageInfo;
 }
 
@@ -68,11 +68,11 @@ function searchAny(query, inStringProperties) {
     if (inStringProperties && inStringProperties.length > 0) {
         for(const inStringProperty of inStringProperties) {
             if (query[inStringProperty]) {
-                var regex = new RegExp([query[inStringProperty]].join(""), "i");
+                let regex = new RegExp([query[inStringProperty]].join(""), "i");
                 query[inStringProperty]= {"$regex" : regex };//"/" + query[inStringProperty].toUpperCase() + "/i"};
             }
         }
-    }
+    } 
 }
 
 function searchInterval(query, property) {
@@ -81,13 +81,13 @@ function searchInterval(query, property) {
     }
     query[property] = query[property].filter(item => item !== '');
     if (query[property].length === 2) {
-        var values = query[property];
+        let values = query[property];
         query[property] = { "$gte": values[0], "$lt": values[1] }; 
         return;
     }
     if (query[property].length === 1) {
-        var value1 = new Date(query[property][0]);
-        var value2 = new Date(query[property][0]);
+        let value1 = new Date(query[property][0]);
+        let value2 = new Date(query[property][0]);
         value2.setDate(value2.getDate() + 1);
         query[property] = { "$gte": value1, "$lt": value2}; 
         return;
@@ -96,12 +96,12 @@ function searchInterval(query, property) {
 }
 
 function sortBy(query) {
-    var sort = {}
+    let sort = {}
     if (!query.sortBy) {
         return sort;
     }
-    var sortBy = query.sortBy.split(',');
-    var sortDirection = defaultSortDirection;
+    let sortBy = query.sortBy.split(',');
+    let sortDirection = defaultSortDirection;
     if (sortBy.length > 1) {
         sortDirection = parseInt(sortBy[1])
     }    
