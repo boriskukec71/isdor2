@@ -39,6 +39,7 @@ function processLogLine(line) {
         "urlSlug": urlTranslated,
         "username": dataFields[1],
         "role": dataFields[2],
+        "sourceIp": dataFields[3],
         "time": logTime,
         "method": dataFields[4],
         "url": dataFields[5],

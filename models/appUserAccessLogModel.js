@@ -7,6 +7,7 @@ var AppUserAccessLogSchema = new Schema({
     username: String,
     role: String,
     time: Date,
+    sourceIp: String,
     method: String,
     url: String,
     correlationId: String,
