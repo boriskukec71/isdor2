@@ -6,15 +6,15 @@ const bodyParser = require('body-parser');
 const { mongoose } = require('./connection/connection.js');
 const fileService = require('./services/fileService');
 const endUserService = require('./services/endUserService'); // TODO 
-const appUserService = require('./services/appUserService'); 
-const appUserAccessLogService = require('./services/appUserAccessLogService'); 
+const appUserService = require('./services/appUserService');
+const appUserAccessLogService = require('./services/appUserAccessLogService');
 const ObjectId = require('mongoose').Types.ObjectId;
 const authenticate = require('./services/authenticateService')
 const authorize = require('./services/authorizationService')
 const log4js = require('./log4js-config');
 const logger = log4js.getLogger('index');
 const config = require('./isidorConfig');
-const importService = require('./services/importService'); 
+const importService = require('./services/importService');
 
 const UPLOAD_PATH = './uploads'
 
@@ -131,7 +131,7 @@ app.get('/end-users/:id', async (req, res, next) => {
     try {
         let doc = await endUserService.getOne(req.params.id);
         res.json(doc);
-    }  catch (err) {
+    } catch (err) {
         next(err);
     };
 });
@@ -149,7 +149,7 @@ app.put('/end-users/:id', async (req, res, next) => {
     try {
         let doc = await endUserService.update(req.params.id, req.body);
         res.json(doc);
-    }  catch (err) {
+    } catch (err) {
         next(err)
     };
 });
@@ -201,15 +201,15 @@ app.post('/folders/:id', upload.single('image'), async (req, res) => {
 });
 
 app.post('/folders/:id/multiple', upload.fields([
-    {name : 'image', maxCount: 10}]), async (req, res) => {
-    try {
-        await fileService.saveFiles(req.params.id, req.files.image, req.body);
-        res.sendStatus(200);
-    } catch (err) {
-        logger.error(err);
-        res.sendStatus(500);
-    };
-});
+    { name: 'image', maxCount: 10 }]), async (req, res) => {
+        try {
+            await fileService.saveFiles(req.params.id, req.files.image, req.body);
+            res.sendStatus(200);
+        } catch (err) {
+            logger.error(err);
+            res.sendStatus(500);
+        };
+    });
 
 app.delete('/files/:id', async (req, res) => {
     try {
@@ -267,7 +267,7 @@ app.get('/app-users/:id', async (req, res) => {
     try {
         let doc = await appUserService.getOne(req.params.id);
         res.json(doc);
-    }  catch (err) {
+    } catch (err) {
         console.log(err);
         res.send(500);
     };
@@ -295,7 +295,7 @@ app.put('/app-users/:id', async (req, res) => {
 app.use(function (err, req, res, next) {
     logger.error(err);
     if (err instanceof mongoose.Error) {
-        res.status(400).send(err.message); 
+        res.status(400).send(err.message);
         return;
     }
     // TODO other error subtypes
@@ -310,18 +310,18 @@ if (!config.https) {
     server = http.createServer(app);
     server.listen(config.port, () => {
         console.log(`isidor2 http server listening on ${config.port}`);
-    }); 
+    });
 } else {
     var fs = require('fs');
     var https = require('https');
-    var privateKey  = fs.readFileSync('sslcrt/isidor2-selfsigned.key', 'utf8');
+    var privateKey = fs.readFileSync('sslcrt/isidor2-selfsigned.key', 'utf8');
     var certificate = fs.readFileSync('sslcrt/isidor2-selfsigned.crt', 'utf8');
-    var credentials = {key: privateKey, cert: certificate};
+    var credentials = { key: privateKey, cert: certificate };
 
     server = https.createServer(credentials, app);
     server.listen(config.port, () => {
         console.log(`isidor2 https server listening on ${config.port}`);
-    }); 
+    });
 }
 
 var terminate = require('./connection/terminate');
@@ -329,10 +329,10 @@ const { Http2ServerResponse } = require('http2');
 const exitHandler = terminate(server, {
     coredump: false,
     timeout: 1000
-  })
+})
 
-  process.on('uncaughtException', exitHandler(1, 'Unexpected Error'))
-  process.on('unhandledRejection', exitHandler(1, 'Unhandled Promise'))
-  process.on('SIGTERM', exitHandler(0, 'SIGTERM'))
-  process.on('SIGINT', exitHandler(0, 'SIGINT'))
+process.on('uncaughtException', exitHandler(1, 'Unexpected Error'))
+process.on('unhandledRejection', exitHandler(1, 'Unhandled Promise'))
+process.on('SIGTERM', exitHandler(0, 'SIGTERM'))
+process.on('SIGINT', exitHandler(0, 'SIGINT'))
 
