@@ -1,11 +1,8 @@
-//Require Mongoose
-var mongoose = require('mongoose');
-var uniqueValidator = require('mongoose-unique-validator');
+const mongoose = require('mongoose');
 
-//Define a schema
-var Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
-var DeletedFileSchema = new Schema({
+const DeletedFileSchema = new Schema({
   name: {
     type: String,
     required: true

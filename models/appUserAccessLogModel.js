@@ -1,8 +1,8 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
-var Schema = mongoose.Schema;
+const Schema = mongoose.Schema;
 
-var AppUserAccessLogSchema = new Schema({
+const AppUserAccessLogSchema = new Schema({
     urlSlug: { type: String, required: true },
     username: String,
     role: String,

@@ -1,6 +1,5 @@
-require('../connection/connection')
 const Imports = require('../models/importModel');
-var fs = require('fs');
+const { promises: fs } = require("fs");
 const logger = require('../log4js-config').getLogger('importService');
 const config = require('../isidorConfig')
 const importConfig = require('../import/importFormDiskConfig')
@@ -23,27 +22,22 @@ function execShellCommand(cmd) {
    }
 
 
-function getAllImportLocations(callback) {
-    fs.readdir(importConfig.import.importFolder, async function(err, files) {
-        if (err) {
-            logger.error(err);
-            callback(err);
+async function getAllImportLocations(callback) {
+    let files = await fs.readdir(importConfig.import.importFolder); 
+    let subFolders = [];
+    for (const file of files) {
+        if (file.toLowerCase().endsWith('csv') || file.toLowerCase().endsWith('txt')) {
+            subFolders.push(file);
         }
-        var subFolders = [];
-        for (var file of files) {
-            if (file.toLowerCase().endsWith('csv') || file.toLowerCase().endsWith('txt')) {
+        const stat = await fs.stat(importConfig.import.importFolder + '/' + file);
+        if (stat.isDirectory()) {
+            let importLocation = await Imports.findOne({ "importLocation": file });
+            if (!importLocation || importLocation === null || importLocation.status === 'error') {
                 subFolders.push(file);
             }
-            var stat = fs.statSync(importConfig.import.importFolder + '/' + file);
-            if (stat.isDirectory()) {
-                var importLocation = await Imports.findOne({ "importLocation": file });
-                if (!importLocation || importLocation === null || importLocation.status === 'error') {
-                    subFolders.push(file);
-                }
-            }
         }
-        callback(undefined, subFolders);
-    });
+    }
+    return subFolders;
 }
 
 async function getAll(query) {
@@ -87,8 +81,8 @@ async function start(importLocation, token, user) {
     }
 }
 
-
-
-exports.getAllImportLocations = getAllImportLocations;
-exports.getAll = getAll;
-exports.start = start;
+module.exports = {
+    getAllImportLocations : getAllImportLocations,
+    getAll : getAll,
+    start : start
+}

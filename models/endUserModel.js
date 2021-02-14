@@ -1,8 +1,8 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
-var Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
-var EndUserSchema = new Schema({
+const EndUserSchema = new Schema({
   idNumber: {
     type: String,
     required: true
@@ -24,6 +24,6 @@ var EndUserSchema = new Schema({
   modifiedAt: Date,
   modifiedby: String
 },
-{collation: { locale: 'hr', strength: 2 }});
+  { collation: { locale: 'hr', strength: 2 } });
 
 module.exports = mongoose.model('EndUsers', EndUserSchema);

@@ -2,8 +2,8 @@ const fs = require('fs-extra');
 const path = require('path');
 const { execSync } = require('child_process');
 
-var log4js = require('log4js');
-var delimiter = '\\';
+const log4js = require('log4js');
+let delimiter = '\\';
 
 log4js.configure({
     appenders: {

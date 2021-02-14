@@ -3,6 +3,7 @@ const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const { mongoose } = require('./connection/connection.js');
 const fileService = require('./services/fileService');
 const endUserService = require('./services/endUserService'); // TODO 
 const appUserService = require('./services/appUserService'); 
@@ -17,7 +18,6 @@ const importService = require('./services/importService');
 
 const UPLOAD_PATH = './uploads'
 
-// Multer Settings for file upload
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, UPLOAD_PATH)
@@ -35,15 +35,15 @@ app.use(log4js.connectLogger(logger, {
     level: 'info', format: (req, res, format) => format(`${req.correlationId()}|${(req.user) ? req.user.username : ''}|${(req.user) ? req.user.role : ''}|:remote-addr|:method|:url|${JSON.stringify(req.body)}|:status`)
 }));
 
-
 app.use(correlator({ header: "x-isidor-correlation" }));
+
 
 function isValidId(id) {
     return ObjectId.isValid(id);
 }
 
 // REST paths //
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
     res.json({
         message: 'isidor2 MEVN Stack!'
     });
@@ -53,76 +53,71 @@ app.post('/login', authenticate.logIn);
 app.all('*', authenticate.authenticateToken);
 app.all('*', authorize.auathorizeUser);
 
-app.get('/imports/locations', (req, res) => {
-    importService.getAllImportLocations(function (err, folders) {
-        if (!err) {
-            res.json(folders);
-        } else {
-            res.sendStatus(500);
-        }
-    });
+app.get('/imports/locations', async (req, res, next) => {
+    try {
+        let importLocations = await importService.getAllImportLocations();
+        res.json(importLocations);
+    } catch (error) {
+        next(error);
+    }
 });
 
-app.get('/imports', async (req, res) => {
+app.get('/imports', async (req, res, next) => {
     try {
         var query = req.query;
         let docs = await importService.getAll(query);
         res.json(docs);
     } catch (err) {
-        res.sendStatus(500);
+        next(error);
     };
 });
 
-app.post('/imports', async (req, res) => {
+app.post('/imports', async (req, res, next) => {
     try {
         var importLocation = req.body.importLocation;
         const token = req.headers['authorization']
         importService.start(importLocation, token, req.user.username);
         res.sendStatus(200);
     } catch (err) {
-        res.sendStatus(500);
+        next(error);
     };
 });
 
-app.get('/folders', (req, res) => {
-    fileService.getAllFolders({}, function (err, docs) {
-        if (!err) {
-            res.json(docs);
-        } else {
-            console.log(err);
-            next(err);
-        }
-    });
+app.get('/folders', async (req, res, next) => {
+    try {
+        let folders = fileService.getAllFolders({});
+        res.json(folders);
+    } catch (error) {
+        next(err);
+    }
 });
 
-app.get('/folders/:id', async (req, res) => {
+app.get('/folders/:id', async (req, res, next) => {
     try {
         if (isValidId(req.params.id)) {
             let doc = await fileService.getOne(req.params.id);
             res.json(doc);
             return;
         }
-        let doc = await fileService.getOneByName(req.params.id); 
-        res.json(doc);
-    }catch (err) {
-        console.log(err);
+        let file = await fileService.getOneByName(req.params.id);
+        res.json(file);
+    } catch (err) {
         next(err);
     }
 });
 
-app.post('/folders', (req, res) => {
-    fileService.createFolder(req.body, function (err, docs) {
-        if (!err) {
-            res.json(docs);
-        } else {
-            console.log(err);
-            res.send(500);
-        }
-    })
+app.post('/folders', async (req, res, next) => {
+    try {
+        const file = fileService.createFolder(req.body);
+        res.json(file);
+    } catch (err) {
+        next(err);
+    }
+
 });
 
 // End user
-app.get('/end-users', async (req, res) => {
+app.get('/end-users', async (req, res, next) => {
     try {
         let docs = await endUserService.getAll(req.query);
         res.json(docs);
@@ -132,60 +127,59 @@ app.get('/end-users', async (req, res) => {
     };
 });
 
-app.get('/end-users/:id', async (req, res) => {
+app.get('/end-users/:id', async (req, res, next) => {
     try {
         let doc = await endUserService.getOne(req.params.id);
         res.json(doc);
     }  catch (err) {
-        console.log(err);
-        res.send(500);
+        next(err);
     };
 });
 
-app.post('/end-users', (req, res) => {
-    endUserService.create(req.body, function (err, docs) {
-        if (!err) {
-            res.json(docs);
-        } else {
-            console.log(err);
-            next(err);
-        }
-    })
+app.post('/end-users', async (req, res, next) => {
+    try {
+        let endUser = await endUserService.create(req.body);
+        res.json(endUser);
+    } catch (err) {
+        next(err);
+    }
 });
 
-app.put('/end-users/:id', async (req, res) => {
+app.put('/end-users/:id', async (req, res, next) => {
     try {
         let doc = await endUserService.update(req.params.id, req.body);
         res.json(doc);
     }  catch (err) {
-        console.log(err);
-        res.send(500);
+        next(err)
     };
 });
 
-app.get('/folders/:id/files', async (req, res) => {
+app.get('/folders/:id/files', async (req, res, next) => {
     try {
         var query = req.query;
         ///query.parentFolder = ObjectId(req.params.id);
-        let docs = await fileService.getAllFilesByFolder(req.params.id, query, false);
-        res.json(docs);
+        const files = await fileService.getAllFilesByFolder(req.params.id, query, false);
+        res.json(files);
     } catch (err) {
-        res.sendStatus(500);
+        next(err);
     };
 });
 
 app.get('/files/:id/:what', async (req, res) => {
-    fileService.getBinary(req.params.id, req.params.what, res);
+    try {
+        fileService.getBinary(req.params.id, req.params.what, res);
+    } catch (err) {
+        next(err);
+    };
 });
 
-app.put('/files/:id', (req, res) => {
-    fileService.updateFileData(req.params.id, req.body, function (err, docs) {
-        if (!err) {
-            res.json(docs);
-        } else {
-            res.send(500);
-        }
-    })
+app.put('/files/:id', async (req, res) => {
+    try {
+        const file = fileService.updateFileData(req.params.id, req.body)
+        res.json(file);
+    } catch (err) {
+        next(err);
+    };
 })
 
 app.post('/end-users/:id/folder', async (req, res) => {
@@ -247,7 +241,7 @@ app.delete('/folders/:id/files', async (req, res) => {
     }
 })
 
-// app user acrss logs
+// app user access logs
 app.get('/app-user-access-logs', async (req, res) => {
     try {
         let docs = await appUserAccessLogService.getAll(req.query);
@@ -279,28 +273,35 @@ app.get('/app-users/:id', async (req, res) => {
     };
 });
 
-app.post('/app-users', (req, res) => {
-    appUserService.create(req.body, function (err, docs) {
-        if (!err) {
-            res.json(docs);
-        } else {
-            console.log(err);
-            res.send(500);
-        }
-    })
+app.post('/app-users', async (req, res, next) => {
+    try {
+        let newAppUser = await appUserService.create(req.body);
+        res.json(newAppUser);
+    } catch (error) {
+        next(error);
+    }
 });
 
-app.put('/app-users/:id', (req, res) => {
-    delete req.body.password2;
-    appUserService.update(req.params.id, req.body, function (err, docs) {
-        if (!err) {
-            res.json(docs);
-        } else {
-            console.log(err);
-            res.send(500);
-        }
-    })
+app.put('/app-users/:id', async (req, res) => {
+    try {
+        delete req.body.password2; // TODO (paranoic), get rid of it in ts version 
+        const appUser = appUserService.update(req.params.id, req.body);
+        return appUser;
+    } catch (error) {
+        next(error);
+    }
 });
+
+app.use(function (err, req, res, next) {
+    logger.error(err);
+    if (err instanceof mongoose.Error) {
+        res.status(400).send(err.message); 
+        return;
+    }
+    // TODO other error subtypes
+    res.status(500).send(err.message);
+})
+
 
 var server;
 
@@ -324,6 +325,7 @@ if (!config.https) {
 }
 
 var terminate = require('./connection/terminate');
+const { Http2ServerResponse } = require('http2');
 const exitHandler = terminate(server, {
     coredump: false,
     timeout: 1000

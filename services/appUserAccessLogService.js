@@ -1,12 +1,9 @@
-require('../connection/connection')
-const { copySync } = require('fs-extra');
+require('../connection/connection.js');
 const AppUserAccessLogs = require('../models/appUserAccessLogModel');
 const pageService = require('./pageService');
 
 
-/// TODO create, and call create from logListener
-// TODO create common serice methods
-async function getAll(query) {
+ async function getAll(query) {
     let pageInfo = pageService.pageInfo(query)
     pageService.searchAny(query, ['urlSlug', 'requestParams', 'requestBody']);
     pageService.searchInterval(query, 'time');
@@ -14,8 +11,8 @@ async function getAll(query) {
     if (Object.keys(sort).length === 0) {
         sort['time'] = -1;
     }
-    pageInfo.data = await AppUserAccessLogs.find(query).sort(sort).skip(pageService.skip(pageInfo)).limit(pageInfo.size);
-    pageInfo.totalElements = await AppUserAccessLogs.countDocuments(query);
+    pageInfo.data = await AppUserAccessLogs.find(query).sort(sort).skip(pageService.skip(pageInfo)).limit(pageInfo.size).exec();
+    pageInfo.totalElements = await AppUserAccessLogs.countDocuments(query).exec();
     return pageInfo;
 }
 
@@ -25,6 +22,7 @@ function getOne(id, callback) {
     });
 }
 
-///exports.create = create;
-exports.getAll = getAll;
-exports.getOne = getOne;
+module.exports = {
+    getAll : getAll,
+    getOne : getOne
+}

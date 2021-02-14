@@ -1,4 +1,3 @@
-const connection = require('../connection/connection')
 const Files = require('../models/fileModel');
 const ObjectId = require('mongoose').Types.ObjectId;
 const fs = require('fs');
@@ -6,7 +5,6 @@ const pageService = require('./pageService');
 const logger = require('../log4js-config').getLogger('fileService');
 const loggerDelete = require('../log4js-config').getLogger('delete');
 const config = require('../isidorConfig')
-const path = require('path');
 const { execSync } = require('child_process');
 const { exec } = require('child_process');
 const correlator = require('express-correlation-id');
@@ -23,26 +21,22 @@ function execShellCommand(cmd) {
     });
    }
 
-function createFolder(folder, callback) {
+async function createFolder(folder) {
     folder.fileType = "folder";
     if (folder.ordinalNumber === null || typeof folder.ordinalNumber === "undefined") {
         folder.ordinalNumber = 1;
     }
-    Files.create(folder, function (err, docs) {
-        callback(err, docs);
-    })
+    const file = await Files.create(folder);
+    return file;
 }
 
-function getAllFolders(query, callback) {
-
+async function getAllFolders(query) {
     if (typeof query.parentFolder === "undefined") {
         query["parentFolder"] = { $exists: false };
     }
     query.type = 0;
-
-    Files.find(query, function (err, docs) {
-        callback(err, docs);
-    });
+    let files = await Files.find(query);
+    return files;
 }
 
 async function getAllFilesByFolder(id, query) {
@@ -80,19 +74,15 @@ async function getAll(query) {
 }
 
 async function getBinary(id, what, res) {
-    try {
-        var file = await Files.findById(id);
-        if (what === 'presentation' && file.hasPresentationImage) {
-            res.contentType(file.presentation.contentType);
-            res.send(file.presentation.data)
-        } else {
-            /// TODO check for what === 'content' otherwise error
-            res.contentType(file.content.contentType);
-            res.send(file.content.data)
-        }
-    } catch (err) {
-        res.send(500);
-    };
+    var file = await Files.findById(id);
+    if (what === 'presentation' && file.hasPresentationImage) {
+        res.contentType(file.presentation.contentType);
+        res.send(file.presentation.data)
+    } else {
+        /// TODO check for what === 'content' otherwise error
+        res.contentType(file.content.contentType);
+        res.send(file.content.data)
+    }
 }
 
 
@@ -104,10 +94,8 @@ async function getOneByName(name, callback) {
     return await Files.findOne({ name: name });
 }
 
-function updateFileData(id, data, callback) {
-    Files.findByIdAndUpdate(id, data, { new: true }, function (err, docs) {
-        callback(err, docs);
-    })
+async function updateFileData(id, data, callback) {
+    return await Files.findByIdAndUpdate(id, data, { new: true });
 }
 
 async function saveFile(parentFolder, inputFile, data) {
@@ -162,7 +150,7 @@ async function saveFileInternal(parentFolder, inputFile, data, presentationFileP
         }
     }
     await file.save();
-    // TODO clear uploads folder
+
     fs.unlinkSync(filePath);
 }
 
@@ -199,15 +187,17 @@ async function deleteFiles(ids, folderId, callback) {
     await deleteFile(ids[0], callback, ids, 0);
 }
 
-exports.createFolder = createFolder;
-exports.getAllFolders = getAllFolders;
-exports.getAll = getAll;
-exports.getOne = getOne;
-exports.getOneByName = getOneByName;
-exports.saveFile = saveFile;
-exports.getBinary = getBinary;
-exports.getAllFilesByFolder = getAllFilesByFolder;
-exports.updateFileData = updateFileData;
-exports.saveFiles = saveFiles;
-exports.deleteFile = deleteFile;
-exports.deleteFiles = deleteFiles;
+module.exports = {
+    createFolder : createFolder,
+    getAllFolders : getAllFolders,
+    getAll : getAll,
+    getOne : getOne,
+    getOneByName : getOneByName,
+    saveFile : saveFile,
+    getBinary : getBinary,
+    getAllFilesByFolder : getAllFilesByFolder,
+    updateFileData : updateFileData,
+    saveFiles : saveFiles,
+    deleteFile : deleteFile,
+    deleteFiles : deleteFiles
+}

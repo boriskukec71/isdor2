@@ -69,7 +69,7 @@ function searchAny(query, inStringProperties) {
         for(const inStringProperty of inStringProperties) {
             if (query[inStringProperty]) {
                 let regex = new RegExp([query[inStringProperty]].join(""), "i");
-                query[inStringProperty]= {"$regex" : regex };//"/" + query[inStringProperty].toUpperCase() + "/i"};
+                query[inStringProperty]= {"$regex" : regex };
             }
         }
     } 
@@ -110,12 +110,14 @@ function sortBy(query) {
     return sort;
 }
 
-exports.skip = skip;
-exports.pageInfo = pageInfo;
-exports.firstPage = firstPage;
-exports.lastPage = lastPage;
-exports.nextPage = nextPage;
-exports.prevPage = prevPage;
-exports.searchAny = searchAny;
-exports.sortBy = sortBy;
-exports.searchInterval = searchInterval;
+module.exports = { 
+    skip : skip,
+    pageInfo : pageInfo,
+    firstPage : firstPage,
+    lastPage : lastPage,
+    nextPage : nextPage,
+    prevPage : prevPage,
+    searchAny : searchAny,
+    sortBy : sortBy,
+    searchInterval : searchInterval
+}

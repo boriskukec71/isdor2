@@ -1,17 +1,15 @@
 const jwt = require('jsonwebtoken');
-var AppUsers = require('../models/appUserModel');
-var config = require('../isidorConfig.js');
+const AppUsers = require('../models/appUserModel');
+const config = require('../isidorConfig.js');
 const logger = require('../log4js-config').getLogger('authenticateService');
 const bcrypt = require('bcrypt');
 
 function authenticateToken(req, res, next) {
-    // Gather the jwt access token from the request header
     const token = req.headers['authorization']
     if (!token) {
         logger.error('[' + req.correlationId() + '] No authorization token!');
         return res.sendStatus(401);
-    } // if there isn't any token
-
+    } 
     jwt.verify(token, config.jwtSecretKey, (err, user) => {
         if (err) {
             if (err.name === 'TokenExpiredError') {
@@ -21,7 +19,6 @@ function authenticateToken(req, res, next) {
             logger.debug('[' + req.correlationId() + '] Authenticating error! ', err);
             return res.sendStatus(403);
         }
-        //logger.debug('[' + req.correlationId() + '] Successfully loged in : ' + user);
         req.user = user
         next(); 
     })
@@ -29,14 +26,13 @@ function authenticateToken(req, res, next) {
 
 
 function logIn(req, res) {
-    var username = req.body.username || '';
-    var password = req.body.password || '';
+    let username = req.body.username || '';
+    let password = req.body.password || '';
     if (username == '' || password == '') {
         res.status(401).end();
         return;
     }
 
-    // Fire a query to your DB and check if the credentials are valid
     validate(username, password, res);
 }
 
@@ -46,8 +42,8 @@ function validate(username, password, res) {
             res.status(401).end();
             return;
         }
-        bcrypt.compare(password, appUser.password).then((isSame) => {
-            if (!isSame) {
+        bcrypt.compare(password, appUser.password).then((isEqual) => {
+            if (!isEqual) {
                 res.status(401).end();
                 return;
             }
@@ -65,16 +61,13 @@ function validate(username, password, res) {
     })
 }
 
-// private method
 function genToken(user) {
     const token = jwt.sign({ username: user.username, role: user.role }, config.jwtSecretKey, { expiresIn: config.tokenExpiresIn })
-
     return token;
 }
 
-/// delete
 function getExpiresAt(expiresIn) {
-    var date = new Date();
+    let date = new Date();
     return date.getTime() + expiresIn * 1000;
 }
 
