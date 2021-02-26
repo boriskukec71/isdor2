@@ -12,14 +12,14 @@ const correlator = require('express-correlation-id');
 /// TODO put this into separate service
 function execShellCommand(cmd) {
     return new Promise((resolve, reject) => {
-     exec(cmd, (error, stdout, stderr) => {
-      if (error) {
-       logger.error(error);
-      }
-      resolve(stdout? stdout : stderr);
-     });
+        exec(cmd, (error, stdout, stderr) => {
+            if (error) {
+                logger.error(error);
+            }
+            resolve(stdout ? stdout : stderr);
+        });
     });
-   }
+}
 
 async function createFolder(folder) {
     folder.fileType = "folder";

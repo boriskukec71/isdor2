@@ -39,6 +39,7 @@ app.use(correlator({ header: "x-isidor-correlation" }));
 
 
 function isValidId(id) {
+    // TODO put this in util module
     return ObjectId.isValid(id);
 }
 
@@ -51,7 +52,7 @@ app.get('/', async (req, res) => {
 
 app.post('/login', authenticate.logIn);
 app.all('*', authenticate.authenticateToken);
-app.all('*', authorize.auathorizeUser);
+app.all('*', authorize.authorizeUser);
 
 app.get('/imports/locations', async (req, res, next) => {
     try {
@@ -325,7 +326,6 @@ if (!config.https) {
 }
 
 var terminate = require('./connection/terminate');
-const { Http2ServerResponse } = require('http2');
 const exitHandler = terminate(server, {
     coredump: false,
     timeout: 1000
