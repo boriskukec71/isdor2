@@ -1,3 +1,4 @@
+// Some ugly code for one time import
 const fs = require('fs-extra');
 const path = require('path');
 const { execSync } = require('child_process');
@@ -5,10 +6,10 @@ const axios = require('axios');
 const config = require('./importFormDiskConfig');
 const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers')
-var FormData = require('form-data');
-var os = require('os');
+const FormData = require('form-data');
+const os = require('os');
 
-var log4js = require('log4js');
+const log4js = require('log4js');
 
 log4js.configure({
     appenders: {
@@ -22,14 +23,14 @@ log4js.getLogger().level = 'debug';
 const logger = log4js.getLogger();
 
 const url = config.protocol + '://' + config.host + ':' + config.port
-var token;
+
 var defaultRequestConfig = {
     headers: {
     }
 };
 
-var delimiter = '\\';
-var outputMessage = 'DONE';
+let delimiter = '\\';
+let outputMessage = 'DONE';
 
 function filenameToPng(filename) {
     var filenameParts = filename.split(".");
@@ -191,13 +192,12 @@ const importFolder = async (folder, subFolders, skipUnexistingFolders) => {
 (async () => {
     try {
         const argv = yargs(hideBin(process.argv)).argv;
+        let token = argv.token;
         if (argv.username && argv.password) {
             const response = await axios.post(url + '/login', {username: argv.username, password:argv.password}); 
             token = response.data.token;
         } 
-        if (argv.token) {
-            token = argv.token;
-        }
+
         defaultRequestConfig.headers.authorization = token;
         if (argv.correlationId) {
             defaultRequestConfig.headers["x-isidor-correlation"] = argv.correlationId;

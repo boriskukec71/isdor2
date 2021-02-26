@@ -1,6 +1,5 @@
-var Service = require('node-windows').Service;
+const { Service } = require('node-windows');
  
-// Create a new service object
 var svc = new Service({
   name:'isidor2LogListener',
   description: 'Log listener arhiva isidor2',

@@ -3,7 +3,7 @@ const axios = require("axios");
 const config = require("./importFormDiskConfig");
 const readline = require('readline');
 const iconv = require('iconv-lite');
-var os = require('os');
+const os = require('os');
 const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers')
 
@@ -18,14 +18,14 @@ log4js.configure({
     }
 });
 
-var delimiter ='\\';
-var outputMessage = 'DONE';
+let delimiter ='\\';
+let outputMessage = 'DONE';
 
 log4js.getLogger().level = "debug";
 const logger = log4js.getLogger();
 
 const url = config.protocol + "://" + config.host + ":" + config.port;
-var token;
+
 var defaultRequestConfig = {
     headers: {}
 };
@@ -42,8 +42,7 @@ const importFile = async (file, cp) => {
         input: fileStream,
         crlfDelay: Infinity
     });
-    // Note: we use the crlfDelay option to recognize all instances of CR LF
-    // ('\r\n') in input.txt as a single line break.
+
     var lineIndex = 1;
     var userType = 'user'; 
     for await (const line of rl) {
@@ -135,20 +134,19 @@ const importFile = async (file, cp) => {
         if (os.platform() === 'linux') {
             delimiter = '/';
         }
-        var file =  argv.file;
+        let file =  argv.file;
+        let token = argv.token
         if (argv.username && argv.password) {
             const response = await axios.post(url + '/login', {username: argv.username, password:argv.password}); 
             token = response.data.token;
         } 
-        if (argv.token) {
-            token = argv.token;
-        }
+
         logger.info("TOKEN: ", token);
         defaultRequestConfig.headers.authorization = token;
         if (argv.correlationId) {
             defaultRequestConfig.headers["x-isidor-correlation"] = argv.correlationId;
         }
-        var cp = 'win1250';
+        let cp = 'win1250';
         if (argv.cp) {  // win1250 for txt from progress
             cp = argv.cp;
         } else if (config.cp) {

@@ -1,10 +1,8 @@
-//Require Mongoose
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
-//Define a schema
-var Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
-var ImportSchema = new Schema({
+const ImportSchema = new Schema({
   importLocation: {
     type: String,
     required: true

@@ -1,14 +1,11 @@
-const connection = require('../connection/connection')
 const EndUsers = require('../models/endUserModel');
 const pageService = require('./pageService');
 const Files = require('../models/fileModel');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 
-function create(endUser, callback) {
-    EndUsers.create(endUser, function (err, docs) {
-        callback(err, docs);
-    })
+async function create(endUser) {
+    return await EndUsers.create(endUser);
 }
 
 async function update(id, endUser) {
@@ -51,8 +48,10 @@ async function createEndUserFolder(endUserId) {
     return {};
 }
 
-exports.create = create;
-exports.getAll = getAll;
-exports.getOne = getOne;
-exports.update = update;
-exports.createEndUserFolder = createEndUserFolder;
+module.exports = {
+    create : create,
+    getAll : getAll,
+    getOne : getOne,
+    update : update,
+    createEndUserFolder : createEndUserFolder
+}

@@ -11,24 +11,22 @@ async function hashPassword(password) {
     return hash;
 }
 
-async function create(appUser, callback) {
+async function create(appUser) {
     if (appUser.password) {
         appUser.password = await hashPassword(appUser.password);
     }
-    AppUsers.create(appUser, function (err, doc) {
-        delete doc.password;
-        callback(err, doc);
-    })
+    let newAppUser = await AppUsers.create(appUser);
+    delete newAppUser.password;
 }
 
-async function update(id, appUser, callback) {
+async function update(id, appUser) {
+    console.log(appUser);
     if (appUser.password) {
         appUser.password = await hashPassword(appUser.password);
     }
-    AppUsers.findByIdAndUpdate(id, appUser, { new: true }, function (err, doc) {
-        delete doc.password;
-        callback(err, doc);
-    })
+    let appUserUpdated = await AppUsers.findByIdAndUpdate(id, appUser, { new: true });
+    delete appUserUpdated.password;
+    return appUserUpdated;
 }
 
 async function getAll(query) {
@@ -47,8 +45,9 @@ async function getOne(id) {
     }
 }
 
-
-exports.create = create;
-exports.getAll = getAll;
-exports.getOne = getOne;
-exports.update = update;
+module.exports = {
+    create: create,
+    getAll: getAll,
+    getOne: getOne,
+    update: update
+}

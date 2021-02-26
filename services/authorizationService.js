@@ -3,12 +3,12 @@ const adminPaths = [
     {path: 'app-users', methods :['GET', 'PUT', 'POST', 'DELETE']}
 ];
 
-function auathorizeUser(req, res, next) {
+function authorizeUser(req, res, next) {
     const { role } = req.user.role;
     // TODO check admin paths
     next();
 }
 
 module.exports = {
-    auathorizeUser: auathorizeUser
+    authorizeUser: authorizeUser
 };
