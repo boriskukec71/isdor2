@@ -5,7 +5,8 @@ const readline = require('readline');
 const iconv = require('iconv-lite');
 const os = require('os');
 const yargs = require('yargs/yargs')
-const { hideBin } = require('yargs/helpers')
+//const { hideBin } = require('yargs/helpers')
+const { parentPort } = require('worker_threads');
 
 var log4js = require("log4js");
 
@@ -128,9 +129,10 @@ const importFile = async (file, cp) => {
     }
 }
 
-(async () => {
+parentPort.once('message', async (argv) => {
     try {
-        const argv = yargs(hideBin(process.argv)).argv
+        ///const argv = yargs(hideBin(process.argv)).argv  
+console.log(argv)
         if (os.platform() === 'linux') {
             delimiter = '/';
         }
@@ -163,5 +165,5 @@ const importFile = async (file, cp) => {
         outputMessage = 'ERROR'
     }
     console.log(outputMessage);
-})();
+})
 
