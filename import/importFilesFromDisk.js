@@ -76,6 +76,7 @@ const importFolder = async (folder, subFolders, skipUnexistingFolders) => {
         var folderId;
         var endUser;
 
+        let ordinalStart = 0;
         const response = await axios.get(url + '/folders/' + subFolder, defaultRequestConfig);
 
         logger.info('Checking: ' + subFolder);
@@ -96,8 +97,12 @@ const importFolder = async (folder, subFolders, skipUnexistingFolders) => {
             }
         } else {
             folderId = response.data._id;
+            const top = await axios.get(url + '/folders/' + subFolder + '/files?sortBy=ordinalNumber&sortDirection=-1', defaultRequestConfig);
+            if (top.data.data[0]) {
+                ordinalStart = top.data.data[0].ordinalNumber;
+            }
         }
-
+        
         const endUserResponse = await axios.get(url + '/end-users/' + subFolder, defaultRequestConfig);
         if (endUserResponse.data === null) {
             logger.info('No end user with name ' + subFolder + ' creting new one');
