@@ -20,12 +20,20 @@ const parentsCursor = (db) => {
           }
         }
       }, {
-        '$match': {
-          '$expr': {
-            '$lt': [
-              '$maxOrdinal', '$count'
+        '$addFields': {
+          'islt': {
+            '$cond': [
+              {
+                '$lt': [
+                  '$maxOrdinal', '$count'
+                ]
+              }, true, false
             ]
           }
+        }
+      }, {
+        '$match': {
+          'islt': true
         }
       }, {
         '$lookup': {
