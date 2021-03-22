@@ -75,7 +75,7 @@ function objectIdWithTimestamp(timestamp) {
 
 const logOne = async (db, doc) => {
   console.log(`START ----<${doc.name}>----`);
-  const inError = await db.collection('files').find({parentFolder: doc._id, _id: {$gt: objectIdWithTimestamp('2020-12-01')}});
+  const inError = await db.collection('files').find({parentFolder: doc._id, _id: {$gt: objectIdWithTimestamp('2020-12-20')}});
   console.log(`Parent: ${doc.name}`)
   while (await inError.hasNext()) {
     const next = await inError.next();
@@ -87,7 +87,7 @@ const logOne = async (db, doc) => {
 
 const fixOne = async (db, doc) => {
   console.log(`START ----<${doc.name}>----`);
-  const inError = await db.collection('files').find({parentFolder: doc._id, _id: {$gt: objectIdWithTimestamp('2020-12-01')}});
+  const inError = await db.collection('files').find({parentFolder: doc._id, _id: {$gt: objectIdWithTimestamp('2020-12-20')}});
   console.log(`Parent: ${doc.name}`)
   while (await inError.hasNext()) {
     const next = await inError.next();
@@ -99,6 +99,8 @@ const fixOne = async (db, doc) => {
 }
 
 const logAll = async () => {
+  const startDate = new Date();
+  console.log(`START ALL ${startDate}`);
   const client = await MongoClient.connect(url);
   const cursor = await parentsCursor(client.db("termoplinArhiva"));
   while (await cursor.hasNext()) {
@@ -106,6 +108,8 @@ const logAll = async () => {
     await logOne(client.db("termoplinArhiva"), next)
   }
   client.close();
+  const endDate = new Date(); 
+  console.log(`END ALL ${endDate}`);
 }
 
 const fixAll = async () => {
@@ -117,5 +121,6 @@ const fixAll = async () => {
   }
   client.close();
 }
+
 
 logAll();
