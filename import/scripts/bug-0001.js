@@ -113,6 +113,8 @@ const logAll = async () => {
 }
 
 const fixAll = async () => {
+  const startDate = new Date();
+  console.log(`START ALL ${startDate}`);
   const client = await MongoClient.connect(url);
   const cursor = await parentsCursor(client.db("termoplinArhiva"));
   while (await cursor.hasNext()) {
@@ -120,7 +122,9 @@ const fixAll = async () => {
     await fixOne(client.db("termoplinArhiva"), next)
   }
   client.close();
+  const endDate = new Date(); 
+  console.log(`END ALL ${endDate}`);
 }
 
 
-logAll();
+fixAll();
