@@ -114,6 +114,7 @@ async function saveFile(parentFolder, inputFile, data) {
     
 async function saveFileInternal(parentFolder, inputFile, data, presentationFilePath) {
     var file = new Files;
+    file.createdAt = new Date();
     file.name = inputFile.originalname;
 
     file.fileType = "file";
