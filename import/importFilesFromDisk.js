@@ -96,11 +96,14 @@ const importFolder = async (folder, subFolders, skipUnexistingFolders) => {
                 folderId = newFolderResponse.data._id; 
             }
         } else {
+            logger.info('Fetching ordinals for: ' + subFolder);
+
             folderId = response.data._id;
-            const top = await axios.get(url + '/folders/' + subFolder + '/files?sortBy=ordinalNumber&sortDirection=-1', defaultRequestConfig);
+            const top = await axios.get(url + '/folders/' + subFolder + '/files?sortBy=ordinalNumber,-1&page=1$size=1', defaultRequestConfig);
             if (top.data.data[0]) {
                 ordinalStart = top.data.data[0].ordinalNumber;
             }
+            logger.info('Ordinal for: ' + subFolder + ' is ' + ordinalStart);
         }
         
         const endUserResponse = await axios.get(url + '/end-users/' + subFolder, defaultRequestConfig);
@@ -151,7 +154,7 @@ const importFolder = async (folder, subFolders, skipUnexistingFolders) => {
                 let formData = new FormData();
                 formData.append('content', 'content');
                 var realFilename = fileExtended.filename;
-                var ordinalNumber = j +1;
+                var ordinalNumber = ordinalStart + j + 1;
                 if (config.import.ordinalInPrefix) {
                     var filenameParts = file.split('_');
                     if (filenameParts.length > 1) {
