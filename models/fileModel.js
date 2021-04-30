@@ -19,6 +19,10 @@ var FileSchema = new Schema({
     type: Number,
     required: true
   },
+  chunkNumber: {
+    type: Number,
+    required: false,
+  },
   isBinaryContent: Boolean,
   hasSearchFilter: Boolean,
   hasPresentationImage: Boolean,
